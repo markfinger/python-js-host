@@ -8,7 +8,7 @@ class Service(object):
 
     def __init__(self):
         if not self.name:
-            raise Exception('Services require a name')
+            raise Exception('Services require a name attribute')
 
         host_config = self.get_host().get_config()
 
@@ -22,6 +22,7 @@ class Service(object):
         if self.host:
             return self.host
 
+        # Default to using the singleton
         from .host import host
         self.host = host
 
