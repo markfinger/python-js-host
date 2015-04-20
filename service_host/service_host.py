@@ -9,14 +9,10 @@ class ServiceHost(BaseServer):
     type_name = 'Host'
 
     def start(self):
-        raise NotImplementedError(
-            '{} must be started manually started'.format(self.get_name())
-        )
+        raise NotImplementedError('{} must be started manually started'.format(self.get_name()))
 
     def stop(self):
-        raise NotImplementedError(
-            '{} must be stopped manually'.format(self.get_name())
-        )
+        raise NotImplementedError('{} must be stopped manually'.format(self.get_name()))
 
     def send_request_to_service(self, service, data=None, cache_key=None, timeout=None):
         if not self.has_connected:
@@ -26,7 +22,6 @@ class ServiceHost(BaseServer):
         if cache_key:
             params['cache-key'] = cache_key
 
-        # TODO: timeout
         try:
             res = self.send_request(
                 'service/' + service,
@@ -51,8 +46,8 @@ class ServiceHost(BaseServer):
 
         if res.status_code != 200:
             raise UnexpectedResponse(
-                'A request for service "{service}" responded with {res_code}: {res_text}'.format(
-                    service=service,
+                'Called service "{name}". {res_code}: {res_text}'.format(
+                    name=service,
                     res_code=res.status_code,
                     res_text=res.text,
                 )

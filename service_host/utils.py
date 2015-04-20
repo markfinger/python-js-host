@@ -1,5 +1,6 @@
 from .service_host import ServiceHost
-from .manager import Manager, ManagedServiceHost
+from .manager import Manager
+from .managed_service_host import ManagedServiceHost
 
 
 def singleton_host_and_manager(**kwargs):
@@ -21,14 +22,7 @@ def singleton_host_and_manager(**kwargs):
         manager.connect()
 
         host = ManagedServiceHost(manager=manager)
-
-        # Managed hosts run on ports allocated by the OS and the manager is used
-        # to keep track of the ports used by each host. When we call host.start(),
-        # we ask the manager to start the host as a subprocess, only if it is not
-        # already running. Once the host is running, we fetch the config from the
-        # manager so that the host knows where to send requests
         host.start()
-
         host.connect()
 
         return host, manager

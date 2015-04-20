@@ -1,6 +1,6 @@
 {
   "private": true,
   "dependencies": {
-    "service-host": "git@github.com:markfinger/service-host#21a550125fd137e5e851cf0e68acbbdb3bf08816"
+    "service-host": "git@github.com:markfinger/service-host#3952778418b0917cb4dbe348a5b14432dec03aa7"
   }
 }

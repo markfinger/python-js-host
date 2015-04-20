@@ -11,7 +11,12 @@ class ManagedServiceHost(ServiceHost):
 
     def __init__(self, manager):
         self.manager = manager
-        self.config = manager.get_config()
+
+        # Reuse the manager's config to avoid the overhead of reading the file
+        # again. Once `start` is called, the config will be updated with the actual
+        # config called by the host.
+        self.config = self.manager.get_config()
+
         super(ManagedServiceHost, self).__init__(
             path_to_node=manager.path_to_node,
             path_to_node_modules=manager.path_to_node_modules,
@@ -19,12 +24,21 @@ class ManagedServiceHost(ServiceHost):
         )
 
     def start(self):
-        res = self.manager.send_request('start', params={'config': self.config_file})
+        """
+        Connect to the manager and request a host using the host's config file.
+
+        Managed hosts run on ports allocated by the OS and the manager is used
+        to keep track of the ports used by each host. When we call host.start(),
+        we ask the manager to start the host as a subprocess, only if it is not
+        already running. Once the host is running, the manager returns the config
+        used by the subprocess so that our host knows where to send requests
+        """
+        res = self.manager.send_request('start', params={'config': self.config_file}, post=True)
 
         if res.status_code != 200:
             raise UnexpectedResponse(
-                'Attempted to start a managed host: {res} - {res_text}'.format(
-                    name=self.get_name(),
+                'Attempted to start a {cls_name}: {res} - {res_text}'.format(
+                    cls_name=type(self).__name__,
                     res=res,
                     res_text=res.text
                 )
@@ -48,6 +62,17 @@ class ManagedServiceHost(ServiceHost):
         )
 
     def stop(self, timeout=None):
+        """
+        Stops a managed host.
+
+        `timeout` specifies the number of milliseconds that the host will be
+        stopped in. If `timeout` is provided, the method will complete while the
+        host is still running
+        """
+
+        if not self.is_running():
+            return
+
         params = {'config': self.config_file}
 
         if timeout:
@@ -64,17 +89,21 @@ class ManagedServiceHost(ServiceHost):
                 )
             )
 
-        if settings.VERBOSITY >= Verbosity.PROCESS_STOP:
-            print(
-                '{name} will stop in {seconds} seconds'.format(
-                    name=self.get_name(),
-                    seconds=timeout / 1000 if timeout else 0,
-                )
-            )
+        if not timeout:
+            # The manager will stop the host after a few milliseconds, so we need to
+            # ensure that the state of the system is as expected
+            time.sleep(0.05)
 
-        # The manager stops hosts asynchronously, so we need to delay
-        # to ensure that the state of the system is as expected
-        time.sleep(0.15)
+        if settings.VERBOSITY >= Verbosity.PROCESS_STOP:
+            if timeout:
+                print(
+                    '{name} will stop in {seconds} seconds'.format(
+                        name=self.get_name(),
+                        seconds=timeout / 1000.0,
+                    )
+                )
+            else:
+                print('Stopped {}'.format(self.get_name()))
 
     def restart(self):
         self.stop()

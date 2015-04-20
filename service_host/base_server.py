@@ -114,7 +114,7 @@ class BaseServer(object):
 
         if res.status_code != 200:
             raise UnexpectedResponse(
-                'Expected config from {name}. Received {res_code}: {res_text}'.format(
+                'Expected {name} to return its config. Received {res_code}: {res_text}'.format(
                     self.get_name(),
                     res_code=res.status_code,
                     res_text=res.text,

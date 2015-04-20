@@ -9,16 +9,19 @@ empty_config_file = os.path.join(os.path.dirname(__file__), 'test_configs', 'emp
 base_server_config_file = os.path.join(os.path.dirname(__file__), 'test_configs', 'test_base_server.services.config.js')
 
 
-class BaseServerTest(BaseServer):
-    type_name = 'Test'
-
-
 class TestBaseServer(unittest.TestCase):
-    server = BaseServerTest(
-        path_to_node=PATH_TO_NODE,
-        path_to_node_modules=PATH_TO_NODE_MODULES,
-        config_file=base_server_config_file
-    )
+    @classmethod
+    def setUpClass(cls):
+        class BaseServerSubclass(BaseServer):
+            type_name = 'Test'
+
+        cls.BaseServerSubclass = BaseServerSubclass
+
+        cls.server = cls.BaseServerSubclass(
+            path_to_node=PATH_TO_NODE,
+            path_to_node_modules=PATH_TO_NODE_MODULES,
+            config_file=base_server_config_file
+        )
 
     def test_is_instantiated_properly(self):
         self.assertEqual(self.server.type_name, 'Test')
@@ -47,7 +50,7 @@ class TestBaseServer(unittest.TestCase):
     def test_raises_an_error_if_a_config_file_does_not_exist(self):
         self.assertRaises(
             ConfigError,
-            BaseServerTest,
+            self.BaseServerSubclass,
             path_to_node=PATH_TO_NODE,
             path_to_node_modules=PATH_TO_NODE_MODULES,
             config_file=missing_config_file,
@@ -56,7 +59,7 @@ class TestBaseServer(unittest.TestCase):
     def test_raises_an_error_if_a_config_file_does_not_export_an_object(self):
         self.assertRaises(
             ConfigError,
-            BaseServerTest,
+            self.BaseServerSubclass,
             path_to_node=PATH_TO_NODE,
             path_to_node_modules=PATH_TO_NODE_MODULES,
             config_file=empty_config_file,

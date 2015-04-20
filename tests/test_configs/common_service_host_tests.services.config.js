@@ -1,26 +1,19 @@
 module.exports = {
 	port: 56789,
-	services: [{
-		name: 'echo',
-		handler: function (data, done) {
+	services: {
+		echo: function(data, done) {
 			if (!data.echo) {
 				return done(new Error('No `echo` prop provided'));
 			}
 			done(null, data.echo);
-		}
-	}, {
-		name: 'echo-data',
-		handler: function (data, done) {
+		},
+		echo_data: function(data, done) {
 			done(null, JSON.stringify(data));
-		}
-	}, {
-		name: 'error',
-		handler: function (data, done) {
+		},
+		error: function(data, done) {
 			done(new Error('Hello from error service'));
-		}
-	}, {
-		name: 'async-echo',
-		handler: function (data, done) {
+		},
+		async_echo: function(data, done) {
 			setTimeout(function() {
 				if (!data.echo) {
 					return done(new Error('No `echo` prop provided'));
@@ -28,5 +21,5 @@ module.exports = {
 				done(null, data.echo);
 			}, 500);
 		}
-	}]
+	}
 };
