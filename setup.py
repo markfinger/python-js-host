@@ -6,7 +6,7 @@ setup(
     version=service_host.VERSION,
     packages=['service_host'],
     install_requires=[
-        'requests>=2.5.0'
+        'requests>=2.5.0',
         'optional-django==0.2.1',
     ],
     description='Python binding to service-host',
