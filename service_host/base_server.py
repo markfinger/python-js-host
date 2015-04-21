@@ -169,9 +169,6 @@ class BaseServer(object):
             )
 
         if settings.VERBOSITY >= Verbosity.CONNECT:
-            print('Connected to {type_name} at {url}'.format(
-                type_name=self.type_name,
-                url=self.get_url())
-            )
+            print('Connected to {}'.format(self.get_name()))
 
         self.has_connected = True
