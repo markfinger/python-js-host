@@ -101,4 +101,5 @@ class Service(object):
         return settings.CACHE and self.cacheable and self.get_config().get('cache', True)
 
     def generate_cache_key(self, serialized_data, data):
+        serialized_data = serialized_data.encode('utf-8')
         return hashlib.sha1(serialized_data).hexdigest()

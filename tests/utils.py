@@ -22,6 +22,8 @@ def start_host_process(host, port_override=None):
 
     output = process.stdout.readline()
 
+    output = output.decode('utf-8')
+
     if not output.startswith('{'):
         raise Exception('Unexpected output from `{}`: {}'.format(' '.join(cmd), output))
 

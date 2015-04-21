@@ -61,10 +61,10 @@ class BaseServer(object):
                 stderr=subprocess.STDOUT,
             )
         except subprocess.CalledProcessError as e:
-            message = 'Failed to read config file {}. {}'.format(self.config_file, e.message)
+            message = 'Failed to read config file {}. {}'.format(self.config_file, str(e))
             raise six.reraise(ConfigError, ConfigError(message), sys.exc_info()[2])
 
-        return json.loads(output)
+        return json.loads(output.decode('utf-8'))
 
     def get_config(self):
         if not self.config:

@@ -41,8 +41,8 @@ class CommonServiceHostTests(unittest.TestCase):
         try:
             self.host.send_request_to_service('error')
             raise Exception('A ServiceError should have been raised before this line')
-        except ServiceError, e:
-            self.assertIn('Hello from error service', e.message)
+        except ServiceError as e:
+            self.assertIn('Hello from error service', str(e))
 
     def test_can_cache_content(self):
         res = self.host.send_request_to_service('echo', data=json.dumps({'echo': 'test1'}), cache_key='foo')
