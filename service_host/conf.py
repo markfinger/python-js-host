@@ -87,7 +87,21 @@ class Conf(conf.Conf):
     # When the python process exits, the manager is informed to stop the host once this
     # timeout has expired. If the python process is only restarting, the manager will
     # cancel the timeout once it has reconnected. If the python process is shutting down
-    # for good, the manager will inevitably stop the host's process.
-    ON_EXIT_MANAGED_HOSTS_STOP_TIMEOUT = 60 * 1000  # 1 minute
+    # for good, the manager will stop the host's process shortly.
+    ON_EXIT_STOP_MANAGED_HOST_AFTER = 10 * 1000  # 10 seconds
+
+    # Once the service host has been configured, attempt to connect. This enables any
+    # config or connection errors to be raised during startup, rather than runtime
+    CONNECT_ONCE_CONFIGURED = True
+
+    def configure(self, **kwargs):
+        super(Conf, self).configure(**kwargs)
+
+        # Connect to the server once we have enough config. This forces connection
+        # and configuration
+        if self.CONNECT_ONCE_CONFIGURED:
+            from .host import host
+            if not host.has_connected:
+                host.connect()
 
 settings = Conf()
