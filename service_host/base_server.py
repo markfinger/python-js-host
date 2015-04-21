@@ -1,10 +1,8 @@
-import sys
 import json
 import os
 import subprocess
 import requests
 from requests.exceptions import ConnectionError as RequestsConnectionError
-from optional_django import six
 from .conf import settings, Verbosity
 from .exceptions import ConfigError, ConnectionError, UnexpectedResponse
 
@@ -55,16 +53,21 @@ class BaseServer(object):
         if settings.VERBOSITY >= Verbosity.ALL:
             print('Reading config file {}'.format(self.config_file))
 
-        try:
-            output = subprocess.check_output(
-                (self.path_to_node, self.get_path_to_bin(), self.config_file, '--config',),
-                stderr=subprocess.STDOUT,
-            )
-        except subprocess.CalledProcessError as e:
-            message = 'Failed to read config file {}. {}'.format(self.config_file, str(e))
-            raise six.reraise(ConfigError, ConfigError(message), sys.exc_info()[2])
+        process = subprocess.Popen(
+            (self.path_to_node, self.get_path_to_bin(), self.config_file, '--config',),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        process.wait()
 
-        return json.loads(output.decode('utf-8'))
+        stderr = process.stderr.read()
+        if stderr:
+            raise ConfigError(stderr)
+
+        stdout = process.stdout.read()
+        stdout = stdout.decode('utf-8')
+
+        return json.loads(stdout)
 
     def get_config(self):
         if not self.config:

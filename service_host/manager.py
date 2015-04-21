@@ -1,7 +1,5 @@
 import time
-import sys
 import subprocess
-from optional_django import six
 from .base_server import BaseServer
 from .conf import settings, Verbosity
 from .exceptions import ErrorStartingProcess, UnexpectedResponse
@@ -11,14 +9,16 @@ class Manager(BaseServer):
     type_name = 'Manager'
 
     def start(self):
-        try:
-            subprocess.check_output(
-                # TODO: managers should accept a flag to stop when their last host stops
-                (self.path_to_node, self.get_path_to_bin(), self.config_file, '--manager', '--detached'),
-                stderr=subprocess.STDOUT,
-            )
-        except subprocess.CalledProcessError as e:
-            raise six.reraise(ErrorStartingProcess, ErrorStartingProcess(*e.args), sys.exc_info()[2])
+        process = subprocess.Popen(
+            (self.path_to_node, self.get_path_to_bin(), self.config_file, '--manager', '--detached'),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        process.wait()
+
+        stderr = process.stderr.read()
+        if stderr:
+            raise ErrorStartingProcess(stderr)
 
         if not self.is_running():
             raise ErrorStartingProcess('Failed to start manager')
