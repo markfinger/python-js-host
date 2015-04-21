@@ -88,7 +88,7 @@ class Conf(conf.Conf):
     # timeout has expired. If the python process is only restarting, the manager will
     # cancel the timeout once it has reconnected. If the python process is shutting down
     # for good, the manager will stop the host's process shortly.
-    ON_EXIT_STOP_MANAGED_HOST_AFTER = 10 * 1000  # 10 seconds
+    ON_EXIT_STOP_MANAGED_HOSTS_AFTER = 10 * 1000  # 10 seconds
 
     # Once the service host has been configured, attempt to connect. This enables any
     # config or connection errors to be raised during startup, rather than runtime

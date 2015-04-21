@@ -62,7 +62,7 @@ class ManagedServiceHost(ServiceHost):
         # assurance that the host's process will inevitably stop.
         atexit.register(
             self.stop,
-            timeout=settings.ON_EXIT_STOP_MANAGED_HOST_AFTER,
+            timeout=settings.ON_EXIT_STOP_MANAGED_HOSTS_AFTER,
         )
 
     def stop(self, timeout=None):
