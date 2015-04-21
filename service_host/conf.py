@@ -11,6 +11,8 @@ class Verbosity(object):
 
 
 class Conf(conf.Conf):
+    django_namespace = 'SERVICE_HOST'
+
     # If True, turns on caching and deactivates the manager
     # If False, turns off caching and activates a basic process manager
     # which handle the host
