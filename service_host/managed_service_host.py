@@ -9,18 +9,22 @@ from .exceptions import UnexpectedResponse
 class ManagedServiceHost(ServiceHost):
     manager = None
 
-    def __init__(self, manager):
+    def __init__(self, manager, config_file=None):
         self.manager = manager
 
-        # Reuse the manager's config to avoid the overhead of reading the file
-        # again. Once `start` is called, the config will be updated with the actual
-        # config called by the host.
-        self.config = self.manager.get_config()
+        if config_file is not None:
+            self.config_file = config_file
+        else:
+            # Reuse the manager's config to avoid the overhead of reading the file
+            # again. Once `start` is called, the config will be updated with the actual
+            # config called by the host.
+            self.config_file = self.manager.config_file
+            self.config = self.manager.get_config()
 
         super(ManagedServiceHost, self).__init__(
             path_to_node=manager.path_to_node,
             path_to_node_modules=manager.path_to_node_modules,
-            config_file=manager.config_file
+            config_file=self.config_file
         )
 
     def start(self):
@@ -73,7 +77,10 @@ class ManagedServiceHost(ServiceHost):
         if not self.is_running():
             return
 
-        params = {'config': self.config_file}
+        params = {
+            'stop-manager-if-last-host': True,
+            'config': self.config_file,
+        }
 
         if timeout:
             params['timeout'] = timeout

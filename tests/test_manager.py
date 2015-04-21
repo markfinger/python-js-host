@@ -4,6 +4,7 @@ import unittest
 from service_host.base_server import BaseServer
 from service_host.exceptions import ConnectionError
 from service_host.manager import Manager
+from service_host.managed_service_host import ManagedServiceHost
 from service_host.conf import settings
 
 manager_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_manager.services.config.js')
@@ -84,3 +85,35 @@ class TestManager(unittest.TestCase):
         self.assertFalse(manager.is_running())
 
         self.assertRaises(ConnectionError, manager.connect)
+
+    def test_managers_stop_once_the_last_host_has(self):
+        manager = Manager(
+            path_to_node=settings.PATH_TO_NODE,
+            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
+            config_file=manager_lifecycle_config_file,
+        )
+
+        manager.start()
+        manager.connect()
+
+        host1 = ManagedServiceHost(manager)
+        host1.start()
+        host1.connect()
+
+        self.assertTrue(host1.is_running())
+
+        host2 = ManagedServiceHost(manager, config_file=manager_config_file)
+        host2.start()
+        host2.connect()
+
+        self.assertNotEqual(host1.config['port'], host2.config['port'])
+
+        self.assertTrue(host2.is_running())
+
+        host1.stop()
+
+        self.assertTrue(manager.is_running())
+
+        host2.stop()
+
+        self.assertFalse(manager.is_running())
