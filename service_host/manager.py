@@ -17,7 +17,7 @@ class Manager(BaseServer):
                 (self.path_to_node, self.get_path_to_bin(), self.config_file, '--manager', '--detached'),
                 stderr=subprocess.STDOUT,
             )
-        except subprocess.CalledProcessError, e:
+        except subprocess.CalledProcessError as e:
             raise six.reraise(ErrorStartingProcess, ErrorStartingProcess(*e.args), sys.exc_info()[2])
 
         if not self.is_running():

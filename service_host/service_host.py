@@ -35,9 +35,9 @@ class ServiceHost(BaseServer):
                 data=data,
                 timeout=timeout,
             )
-        except RequestsConnectionError, e:
+        except RequestsConnectionError as e:
             raise six.reraise(ConnectionError, ConnectionError(*e.args), sys.exc_info()[2])
-        except ReadTimeout, e:
+        except ReadTimeout as e:
             raise six.reraise(ServiceTimeout, ServiceTimeout(*e.args), sys.exc_info()[2])
 
         if res.status_code == 500:

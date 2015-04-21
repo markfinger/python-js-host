@@ -60,7 +60,7 @@ class BaseServer(object):
                 (self.path_to_node, self.get_path_to_bin(), self.config_file, '--config',),
                 stderr=subprocess.STDOUT,
             )
-        except subprocess.CalledProcessError, e:
+        except subprocess.CalledProcessError as e:
             message = 'Failed to read config file {}. {}'.format(self.config_file, e.message)
             raise six.reraise(ConfigError, ConfigError(message), sys.exc_info()[2])
 
