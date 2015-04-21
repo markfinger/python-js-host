@@ -1,6 +1,7 @@
 import sys
 from optional_django import six
 from requests.exceptions import ConnectionError as RequestsConnectionError, ReadTimeout
+from .conf import settings, Verbosity
 from .exceptions import ServiceError, UnexpectedResponse, ConnectionError, ServiceTimeout
 from .base_server import BaseServer
 
@@ -21,6 +22,9 @@ class ServiceHost(BaseServer):
         params = {}
         if cache_key:
             params['cache-key'] = cache_key
+
+        if settings.VERBOSITY >= Verbosity.SERVICE_CALL:
+            print('Calling service "{}" with cache-key "{}" and data {}'.format(service, cache_key, data))
 
         try:
             res = self.send_request(

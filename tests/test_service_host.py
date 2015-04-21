@@ -1,7 +1,7 @@
 import json
 from service_host.exceptions import ConnectionError
 from service_host.service_host import ServiceHost
-from .settings import PATH_TO_NODE, PATH_TO_NODE_MODULES
+from service_host.conf import settings
 from .common_service_host_tests import CommonServiceHostTests
 from .utils import start_host_process, stop_host_process
 
@@ -13,8 +13,8 @@ class TestServiceHost(CommonServiceHostTests):
     @classmethod
     def setUpClass(cls):
         cls.host = ServiceHost(
-            path_to_node=PATH_TO_NODE,
-            path_to_node_modules=PATH_TO_NODE_MODULES,
+            path_to_node=settings.PATH_TO_NODE,
+            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
             config_file=cls.common_service_host_config_file
         )
         cls.process = start_host_process(cls.host)
@@ -35,8 +35,8 @@ class TestServiceHost(CommonServiceHostTests):
 
     def test_host_connection_lifecycle(self):
         host = ServiceHost(
-            path_to_node=PATH_TO_NODE,
-            path_to_node_modules=PATH_TO_NODE_MODULES,
+            path_to_node=settings.PATH_TO_NODE,
+            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
             config_file=self.common_service_host_config_file,
         )
 

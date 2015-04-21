@@ -1,5 +1,5 @@
 # Django convenience hook to ensure that we can connect to the
-# host during startup, rather than waiting for runtime checks
+# host during startup
 
 from .host import host
 

@@ -3,7 +3,7 @@ import unittest
 import json
 from service_host.base_server import BaseServer
 from service_host.exceptions import ServiceError, ServiceTimeout
-from .settings import PATH_TO_NODE, PATH_TO_NODE_MODULES
+from service_host.conf import settings
 
 
 class CommonServiceHostTests(unittest.TestCase):
@@ -15,15 +15,15 @@ class CommonServiceHostTests(unittest.TestCase):
     __test__ = False
 
     host = None
-    common_service_host_config_file = os.path.join(os.path.dirname(__file__), 'test_configs', 'common_service_host_tests.services.config.js')
+    common_service_host_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'common_service_host_tests.services.config.js')
 
     def test_inherits_from_base_server(self):
         self.assertIsInstance(self.host, BaseServer)
 
     def test_is_instantiated_properly(self):
         self.assertEqual(self.host.type_name, 'Host')
-        self.assertEqual(self.host.path_to_node, PATH_TO_NODE)
-        self.assertEqual(self.host.path_to_node_modules, PATH_TO_NODE_MODULES)
+        self.assertEqual(self.host.path_to_node, settings.PATH_TO_NODE)
+        self.assertEqual(self.host.path_to_node_modules, settings.PATH_TO_NODE_MODULES)
         self.assertIsNotNone(self.host.config)
         self.assertIsInstance(self.host.config, dict)
         self.assertEqual(self.host.config_file, self.common_service_host_config_file)

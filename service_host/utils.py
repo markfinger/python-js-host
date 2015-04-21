@@ -10,12 +10,10 @@ def singleton_host_and_manager(**kwargs):
         'config_file': kwargs['config_file'],
     }
 
-    # ** DO NOT USE THE MANAGER IN PRODUCTION **
     if kwargs['use_manager']:
         manager = Manager(**conf)
 
-        # Managers need to run on the port specific in the config, hence we ensure
-        # that it is not already running before we start it
+        # Managers run as persistent processes, so it may already be running
         if not manager.is_running():
             manager.start()
 

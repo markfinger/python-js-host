@@ -2,11 +2,11 @@ import os
 import unittest
 from service_host.base_server import BaseServer
 from service_host.exceptions import ConfigError
-from .settings import PATH_TO_NODE, PATH_TO_NODE_MODULES
+from service_host.conf import settings
 
-missing_config_file = os.path.join(os.path.dirname(__file__), 'test_configs', '__non_existent_file__')
-empty_config_file = os.path.join(os.path.dirname(__file__), 'test_configs', 'empty.services.config.js')
-base_server_config_file = os.path.join(os.path.dirname(__file__), 'test_configs', 'test_base_server.services.config.js')
+missing_config_file = os.path.join(os.path.dirname(__file__), 'config_files', '__non_existent_file__')
+empty_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'empty.services.config.js')
+base_server_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_base_server.services.config.js')
 
 
 class TestBaseServer(unittest.TestCase):
@@ -18,8 +18,8 @@ class TestBaseServer(unittest.TestCase):
         cls.BaseServerSubclass = BaseServerSubclass
 
         cls.server = cls.BaseServerSubclass(
-            path_to_node=PATH_TO_NODE,
-            path_to_node_modules=PATH_TO_NODE_MODULES,
+            path_to_node=settings.PATH_TO_NODE,
+            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
             config_file=base_server_config_file
         )
 
@@ -27,8 +27,8 @@ class TestBaseServer(unittest.TestCase):
         self.assertEqual(self.server.type_name, 'Test')
         self.assertFalse(self.server.has_connected)
         self.assertEqual(self.server.config_file, base_server_config_file)
-        self.assertEqual(self.server.path_to_node, PATH_TO_NODE)
-        self.assertEqual(self.server.path_to_node_modules, PATH_TO_NODE_MODULES)
+        self.assertEqual(self.server.path_to_node, settings.PATH_TO_NODE)
+        self.assertEqual(self.server.path_to_node_modules, settings.PATH_TO_NODE_MODULES)
         self.assertIsNotNone(self.server.config)
 
     def test_can_read_in_config(self):
@@ -51,8 +51,8 @@ class TestBaseServer(unittest.TestCase):
         self.assertRaises(
             ConfigError,
             self.BaseServerSubclass,
-            path_to_node=PATH_TO_NODE,
-            path_to_node_modules=PATH_TO_NODE_MODULES,
+            path_to_node=settings.PATH_TO_NODE,
+            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
             config_file=missing_config_file,
         )
 
@@ -60,8 +60,8 @@ class TestBaseServer(unittest.TestCase):
         self.assertRaises(
             ConfigError,
             self.BaseServerSubclass,
-            path_to_node=PATH_TO_NODE,
-            path_to_node_modules=PATH_TO_NODE_MODULES,
+            path_to_node=settings.PATH_TO_NODE,
+            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
             config_file=empty_config_file,
         )
 

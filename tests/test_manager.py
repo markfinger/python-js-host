@@ -4,10 +4,10 @@ import unittest
 from service_host.base_server import BaseServer
 from service_host.exceptions import ConnectionError
 from service_host.manager import Manager
-from .settings import PATH_TO_NODE, PATH_TO_NODE_MODULES
+from service_host.conf import settings
 
-manager_config_file = os.path.join(os.path.dirname(__file__), 'test_configs', 'test_manager.services.config.js')
-manager_lifecycle_config_file = os.path.join(os.path.dirname(__file__), 'test_configs', 'test_manager_lifecycle.services.config.js')
+manager_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_manager.services.config.js')
+manager_lifecycle_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_manager_lifecycle.services.config.js')
 
 
 class TestManager(unittest.TestCase):
@@ -16,8 +16,8 @@ class TestManager(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.manager = Manager(
-            path_to_node=PATH_TO_NODE,
-            path_to_node_modules=PATH_TO_NODE_MODULES,
+            path_to_node=settings.PATH_TO_NODE,
+            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
             config_file=manager_config_file
         )
         cls.manager.start()
@@ -33,8 +33,8 @@ class TestManager(unittest.TestCase):
     def test_is_instantiated_properly(self):
         self.assertEqual(self.manager.type_name, 'Manager')
         self.assertEqual(self.manager.config_file, manager_config_file)
-        self.assertEqual(self.manager.path_to_node, PATH_TO_NODE)
-        self.assertEqual(self.manager.path_to_node_modules, PATH_TO_NODE_MODULES)
+        self.assertEqual(self.manager.path_to_node, settings.PATH_TO_NODE)
+        self.assertEqual(self.manager.path_to_node_modules, settings.PATH_TO_NODE_MODULES)
         self.assertIsNotNone(self.manager.config)
         self.assertIsInstance(self.manager.config, dict)
 
@@ -60,8 +60,8 @@ class TestManager(unittest.TestCase):
 
     def test_manager_lifecycle(self):
         manager = Manager(
-            path_to_node=PATH_TO_NODE,
-            path_to_node_modules=PATH_TO_NODE_MODULES,
+            path_to_node=settings.PATH_TO_NODE,
+            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
             config_file=manager_lifecycle_config_file,
         )
 

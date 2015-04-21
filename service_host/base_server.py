@@ -61,7 +61,8 @@ class BaseServer(object):
                 stderr=subprocess.STDOUT,
             )
         except subprocess.CalledProcessError, e:
-            raise six.reraise(ConfigError, ConfigError(*e.args), sys.exc_info()[2])
+            message = 'Failed to read config file {}. {}'.format(self.config_file, e.message)
+            raise six.reraise(ConfigError, ConfigError(message), sys.exc_info()[2])
 
         return json.loads(output)
 
@@ -95,10 +96,17 @@ class BaseServer(object):
 
         url = self.get_url(endpoint)
 
-        if post:
-            return requests.post(url, params=params, headers=headers, data=data, timeout=timeout)
+        func = requests.post if post else requests.get
 
-        return requests.get(url, params=params, headers=headers, timeout=timeout)
+        kwargs = {
+            'params': params,
+            'headers': headers,
+            'timeout': timeout
+        }
+        if post:
+            kwargs['data'] = data
+
+        return func(url, **kwargs)
 
     def request_type_name(self):
         try:

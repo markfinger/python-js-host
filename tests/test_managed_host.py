@@ -3,10 +3,10 @@ import os
 from service_host.exceptions import ConnectionError
 from service_host.manager import Manager
 from service_host.managed_service_host import ManagedServiceHost
-from .settings import PATH_TO_NODE, PATH_TO_NODE_MODULES
+from service_host.conf import settings
 from .common_service_host_tests import CommonServiceHostTests
 
-managed_host_lifecycle_config_file = os.path.join(os.path.dirname(__file__), 'test_configs', 'test_managed_host_lifecycle.services.config.js')
+managed_host_lifecycle_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_managed_host_lifecycle.services.config.js')
 
 
 class TestManagedHost(CommonServiceHostTests):
@@ -16,8 +16,8 @@ class TestManagedHost(CommonServiceHostTests):
     @classmethod
     def setUpClass(cls):
         cls.manager = Manager(
-            path_to_node=PATH_TO_NODE,
-            path_to_node_modules=PATH_TO_NODE_MODULES,
+            path_to_node=settings.PATH_TO_NODE,
+            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
             config_file=cls.common_service_host_config_file
         )
         cls.manager.start()
@@ -59,8 +59,8 @@ class TestManagedHost(CommonServiceHostTests):
 
     def test_managed_host_lifecycle(self):
         manager = Manager(
-            path_to_node=PATH_TO_NODE,
-            path_to_node_modules=PATH_TO_NODE_MODULES,
+            path_to_node=settings.PATH_TO_NODE,
+            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
             config_file=managed_host_lifecycle_config_file,
         )
 
