@@ -17,7 +17,7 @@ class TestManagedHost(CommonServiceHostTests):
     def setUpClass(cls):
         cls.manager = Manager(
             path_to_node=settings.PATH_TO_NODE,
-            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
+            source_root=settings.SOURCE_ROOT,
             config_file=cls.common_service_host_config_file
         )
         cls.manager.start()
@@ -60,7 +60,7 @@ class TestManagedHost(CommonServiceHostTests):
     def test_managed_host_lifecycle(self):
         manager = Manager(
             path_to_node=settings.PATH_TO_NODE,
-            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
+            source_root=settings.SOURCE_ROOT,
             config_file=managed_host_lifecycle_config_file,
         )
 

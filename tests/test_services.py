@@ -45,7 +45,7 @@ class TestServices(unittest.TestCase):
 
         service.host = ServiceHost(
             settings.PATH_TO_NODE,
-            settings.PATH_TO_NODE_MODULES,
+            settings.SOURCE_ROOT,
             no_services_host_config_file,
         )
 

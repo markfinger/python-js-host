@@ -23,7 +23,7 @@ class ManagedServiceHost(ServiceHost):
 
         super(ManagedServiceHost, self).__init__(
             path_to_node=manager.path_to_node,
-            path_to_node_modules=manager.path_to_node_modules,
+            source_root=manager.source_root,
             config_file=self.config_file
         )
 

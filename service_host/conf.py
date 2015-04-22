@@ -3,13 +3,19 @@ from optional_django import conf
 
 class Verbosity(object):
     SILENT = 0
-    CONNECT = 100  # Output when connections are opened
-    PROCESS_START = 200  # Output when managers and managed hosts are started
-    PROCESS_STOP = 300  # Output when managers and managed hosts are sent `stop` signals
-    SERVICE_CALL = 400  # Output when services are called
-    ALL = 500  # Output everything
+    # Output when connections are opened
+    CONNECT = 100
+    # Output when managers and managed hosts are started
+    PROCESS_START = 200
+    # Output when managers and managed hosts are sent `stop` signals
+    PROCESS_STOP = 300
+    # Output when services are called
+    SERVICE_CALL = 400
+    # Output everything
+    ALL = 500
 
 
+# TODO: move the internal docs into the README
 class Conf(conf.Conf):
     django_namespace = 'SERVICE_HOST'
 
@@ -21,9 +27,9 @@ class Conf(conf.Conf):
     # A path that will resolve to a node binary
     PATH_TO_NODE = 'node'
 
-    # An absolute path to the directory containing the codebase for the
-    # JavaScript library "service-host"
-    PATH_TO_NODE_MODULES = None
+    # An absolute path to the directory containing the node_modules directory
+    # that service-host was installed into
+    SOURCE_ROOT = None
 
     # An absolute path to the config file used for the `service_host.host`
     # singletons which services will use by default
@@ -73,16 +79,16 @@ class Conf(conf.Conf):
 
     The manager comes with certain downsides:
 
-    - It is complicated to get access to the stdout/stderr of either the manager or
-     the host. Hence, if the host goes down outside of a request cycle, there is no
-     indication as to the reasons why.
-    - The manager runs the host on a "random" port allocated by the OS, this introduces
-     an unlikely, but technically possible, opportunity for a port collision to occur.
+    - It complicates the process of getting access to the stdout/stderr of either the
+     manager or the host. Hence, if the host goes down outside of a request cycle,
+     there is no indication as to the reasons why.
+    - The manager runs the host on a pseudo-random port allocated by the OS, this
+     introduces an unlikely - but technically possible - opportunity for a port collision
+     to occur.
 
-    To avoid these issues, you can simply run the host as a normal process, by calling
-    `node node_modules/.bin/service-host path/to/services.config.js`, which will run
-    a host directly on the port expected, and allow you to view the host's stdout and
-    stderr.
+    If you wish to avoid these issues, you can simply run the host as a normal process,
+    by calling `node node_modules/.bin/service-host path/to/services.config.js`, which
+    will run a host directly, and allow you to view the host's stdout and stderr.
     """
     USE_MANAGER = not PRODUCTION
 

@@ -18,7 +18,7 @@ class TestManager(unittest.TestCase):
     def setUpClass(cls):
         cls.manager = Manager(
             path_to_node=settings.PATH_TO_NODE,
-            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
+            source_root=settings.SOURCE_ROOT,
             config_file=manager_config_file
         )
         cls.manager.start()
@@ -35,7 +35,7 @@ class TestManager(unittest.TestCase):
         self.assertEqual(self.manager.type_name, 'Manager')
         self.assertEqual(self.manager.config_file, manager_config_file)
         self.assertEqual(self.manager.path_to_node, settings.PATH_TO_NODE)
-        self.assertEqual(self.manager.path_to_node_modules, settings.PATH_TO_NODE_MODULES)
+        self.assertEqual(self.manager.source_root, settings.SOURCE_ROOT)
         self.assertIsNotNone(self.manager.config)
         self.assertIsInstance(self.manager.config, dict)
 
@@ -62,7 +62,7 @@ class TestManager(unittest.TestCase):
     def test_manager_lifecycle(self):
         manager = Manager(
             path_to_node=settings.PATH_TO_NODE,
-            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
+            source_root=settings.SOURCE_ROOT,
             config_file=manager_lifecycle_config_file,
         )
 
@@ -89,7 +89,7 @@ class TestManager(unittest.TestCase):
     def test_managers_stop_once_the_last_host_has(self):
         manager = Manager(
             path_to_node=settings.PATH_TO_NODE,
-            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
+            source_root=settings.SOURCE_ROOT,
             config_file=manager_lifecycle_config_file,
         )
 

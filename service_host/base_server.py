@@ -10,7 +10,7 @@ from .exceptions import ConfigError, ConnectionError, UnexpectedResponse
 class BaseServer(object):
     # Config
     path_to_node = None
-    path_to_node_modules = None
+    source_root = None
     config_file = None
 
     # Defined by subclasses
@@ -26,14 +26,14 @@ class BaseServer(object):
     # comparing configs
     _ignorable_config_keys = ('outputOnListen',)
 
-    def __init__(self, path_to_node, path_to_node_modules, config_file):
+    def __init__(self, path_to_node, source_root, config_file):
         self.path_to_node = path_to_node
-        self.path_to_node_modules = path_to_node_modules
+        self.source_root = source_root
         self.config_file = config_file
 
         # Sanity checks
         assert self.path_to_node
-        assert self.path_to_node_modules
+        assert self.source_root
         assert self.config_file
         assert self.type_name
 
@@ -47,7 +47,7 @@ class BaseServer(object):
         )
 
     def get_path_to_bin(self):
-        return os.path.join(self.path_to_node_modules, '.bin', 'service-host')
+        return os.path.join(self.source_root, 'node_modules', '.bin', 'service-host')
 
     def read_config_from_file(self):
         if settings.VERBOSITY >= Verbosity.ALL:

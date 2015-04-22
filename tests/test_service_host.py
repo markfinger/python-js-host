@@ -14,7 +14,7 @@ class TestServiceHost(CommonServiceHostTests):
     def setUpClass(cls):
         cls.host = ServiceHost(
             path_to_node=settings.PATH_TO_NODE,
-            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
+            source_root=settings.SOURCE_ROOT,
             config_file=cls.common_service_host_config_file
         )
         cls.process = start_host_process(cls.host)
@@ -36,7 +36,7 @@ class TestServiceHost(CommonServiceHostTests):
     def test_host_connection_lifecycle(self):
         host = ServiceHost(
             path_to_node=settings.PATH_TO_NODE,
-            path_to_node_modules=settings.PATH_TO_NODE_MODULES,
+            source_root=settings.SOURCE_ROOT,
             config_file=self.common_service_host_config_file,
         )
 

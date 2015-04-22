@@ -23,7 +23,7 @@ class CommonServiceHostTests(unittest.TestCase):
     def test_is_instantiated_properly(self):
         self.assertEqual(self.host.type_name, 'Host')
         self.assertEqual(self.host.path_to_node, settings.PATH_TO_NODE)
-        self.assertEqual(self.host.path_to_node_modules, settings.PATH_TO_NODE_MODULES)
+        self.assertEqual(self.host.source_root, settings.SOURCE_ROOT)
         self.assertIsNotNone(self.host.config)
         self.assertIsInstance(self.host.config, dict)
         self.assertEqual(self.host.config_file, self.common_service_host_config_file)

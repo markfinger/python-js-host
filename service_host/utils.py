@@ -3,14 +3,14 @@ from .manager import Manager
 from .managed_service_host import ManagedServiceHost
 
 
-def singleton_host_and_manager(**kwargs):
+def singleton_host_and_manager(path_to_node, source_root, config_file, use_manager):
     conf = {
-        'path_to_node': kwargs['path_to_node'],
-        'path_to_node_modules': kwargs['path_to_node_modules'],
-        'config_file': kwargs['config_file'],
+        'path_to_node': path_to_node,
+        'source_root': source_root,
+        'config_file': config_file,
     }
 
-    if kwargs['use_manager']:
+    if use_manager:
         manager = Manager(**conf)
 
         # Managers run as persistent processes, so it may already be running
@@ -20,6 +20,8 @@ def singleton_host_and_manager(**kwargs):
         manager.connect()
 
         host = ManagedServiceHost(manager=manager)
+
+        # Either start a managed host or connect to a pre-existing one
         host.start()
         host.connect()
 
@@ -28,8 +30,7 @@ def singleton_host_and_manager(**kwargs):
     host = ServiceHost(**conf)
 
     # In production environments, the host should be run as an external process
-    # under a supervisor system. Hence we only connect to it, and verify that it
-    # is using the config that we expect
+    # under a supervisor system. Hence, we only connect to it
     host.connect()
 
     return host, None
