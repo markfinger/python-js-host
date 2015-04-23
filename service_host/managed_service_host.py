@@ -18,11 +18,11 @@ class ManagedServiceHost(ServiceHost):
             # Reuse the manager's config to avoid the overhead of reading the file
             # again. Once the process has started, the real config is read in from
             # the process once it starts up
-            self.config_file = self.manager.config_file
+            self.config_file = self.manager.get_path_to_config_file()
             self.config = self.manager.get_config()
 
         super(ManagedServiceHost, self).__init__(
-            config_file=self.config_file,
+            config_file=self.get_path_to_config_file(),
             source_root=manager.source_root,
             path_to_node=manager.path_to_node,
         )
@@ -37,7 +37,7 @@ class ManagedServiceHost(ServiceHost):
         already running. Once the host is running, the manager returns the config
         used by the subprocess so that our host knows where to send requests
         """
-        res = self.manager.send_request('start', params={'config': self.config_file}, post=True)
+        res = self.manager.send_request('start', params={'config': self.get_path_to_config_file()}, post=True)
 
         if res.status_code != 200:
             raise UnexpectedResponse(
@@ -79,7 +79,7 @@ class ManagedServiceHost(ServiceHost):
 
         params = {
             'stop-manager-if-last-host': True,
-            'config': self.config_file,
+            'config': self.get_path_to_config_file(),
         }
 
         if timeout:

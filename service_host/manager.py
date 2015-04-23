@@ -10,7 +10,7 @@ class Manager(BaseServer):
 
     def start(self):
         process = subprocess.Popen(
-            (self.path_to_node, self.get_path_to_bin(), self.config_file, '--manager', '--detached'),
+            (self.path_to_node, self.get_path_to_bin(), self.get_path_to_config_file(), '--manager', '--detached'),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
