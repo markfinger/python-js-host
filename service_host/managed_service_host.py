@@ -65,22 +65,30 @@ class ManagedServiceHost(ServiceHost):
             timeout=settings.ON_EXIT_STOP_MANAGED_HOSTS_AFTER,
         )
 
-    def stop(self, timeout=None):
+    def stop(self, timeout=None, stop_manager=None):
         """
         Stops a managed host.
 
         `timeout` specifies the number of milliseconds that the host will be
         stopped in. If `timeout` is provided, the method will complete while the
         host is still running
+
+        `stop_manager` indicates that the manager should stop if this host is
+        the last one being managed.
         """
 
         if not self.is_running():
             return
 
         params = {
-            'stop-manager-if-last-host': True,
             'config': self.get_path_to_config_file(),
         }
+
+        if stop_manager is None:
+            stop_manager = True
+
+        if stop_manager:
+            params['stop-manager-if-last-host'] = True
 
         if timeout:
             params['timeout'] = timeout
@@ -113,6 +121,6 @@ class ManagedServiceHost(ServiceHost):
                 print('Stopped {}'.format(self.get_name()))
 
     def restart(self):
-        self.stop()
+        self.stop(stop_manager=False)
         self.start()
         self.connect()

@@ -81,3 +81,9 @@ class TestManagedHost(CommonServiceHostTests):
         self.assertRaises(ConnectionError, host.connect)
 
         manager.stop()
+
+    def test_can_restart(self):
+        port = self.host.config['port']
+        self.host.restart()
+        self.assertTrue(self.host.is_running())
+        self.assertNotEqual(port, self.host.config['port'])
