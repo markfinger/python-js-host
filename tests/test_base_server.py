@@ -28,7 +28,8 @@ class TestBaseServer(unittest.TestCase):
         self.assertIsNotNone(self.server.config)
 
     def test_can_read_in_config(self):
-        self.assertEqual(self.server.get_config(), self.server.config)
+        base_server_config = self.server.read_config_from_file(base_server_config_file)
+        self.assertEqual(self.server.get_config(), base_server_config)
         self.assertEqual(self.server.config['address'], '127.0.0.1')
         self.assertEqual(self.server.config['port'], 9876)
         self.assertEqual(self.server.config['someUnexpectedProp'], 'foo')

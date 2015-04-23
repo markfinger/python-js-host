@@ -85,12 +85,12 @@ class BaseServer(object):
             return settings.BIN_PATH
         return os.path.join(self.source_root, settings.BIN_PATH)
 
-    def read_config_from_file(self):
+    def read_config_from_file(self, config_file):
         if settings.VERBOSITY >= Verbosity.ALL:
-            print('Reading config file {}'.format(self.config_file))
+            print('Reading config file {}'.format(config_file))
 
         process = subprocess.Popen(
-            (self.path_to_node, self.get_path_to_bin(), self.config_file, '--config',),
+            (self.path_to_node, self.get_path_to_bin(), config_file, '--config',),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -107,7 +107,7 @@ class BaseServer(object):
 
     def get_config(self):
         if not self.config:
-            self.config = self.read_config_from_file()
+            self.config = self.read_config_from_file(self.get_path_to_config_file())
         return self.config
 
     def get_url(self, endpoint=None):
