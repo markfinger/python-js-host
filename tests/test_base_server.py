@@ -17,11 +17,7 @@ class TestBaseServer(unittest.TestCase):
 
         cls.BaseServerSubclass = BaseServerSubclass
 
-        cls.server = cls.BaseServerSubclass(
-            path_to_node=settings.PATH_TO_NODE,
-            source_root=settings.SOURCE_ROOT,
-            config_file=base_server_config_file
-        )
+        cls.server = cls.BaseServerSubclass(config_file=base_server_config_file)
 
     def test_is_instantiated_properly(self):
         self.assertEqual(self.server.type_name, 'Test')
@@ -64,10 +60,3 @@ class TestBaseServer(unittest.TestCase):
             source_root=settings.SOURCE_ROOT,
             config_file=empty_config_file,
         )
-
-    def test_can_validate_config(self):
-        self.assertRaises(ConfigError, self.server.validate_config, None)
-        self.assertRaises(ConfigError, self.server.validate_config, {})
-        self.assertRaises(ConfigError, self.server.validate_config, {'address': True})
-        self.assertRaises(ConfigError, self.server.validate_config, {'port': True})
-        self.server.validate_config({'address': True, 'port': True})

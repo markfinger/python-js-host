@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import requests
+from distutils.spawn import find_executable
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from .conf import settings, Verbosity
 from .exceptions import ConfigError, ConnectionError, UnexpectedResponse
@@ -26,18 +27,51 @@ class BaseServer(object):
     # comparing configs
     _ignorable_config_keys = ('outputOnListen',)
 
-    def __init__(self, path_to_node, source_root, config_file):
-        self.path_to_node = path_to_node
-        self.source_root = source_root
-        self.config_file = config_file
+    def __init__(self, config_file=None, source_root=None, path_to_node=None):
+        self.config_file = config_file or settings.CONFIG_FILE
+        self.source_root = source_root or settings.SOURCE_ROOT
+        self.path_to_node = path_to_node or settings.PATH_TO_NODE
 
-        # Sanity checks
-        assert self.path_to_node
-        assert self.source_root
-        assert self.config_file
-        assert self.type_name
+        for setting in ('config_file', 'source_root', 'path_to_node'):
+            if not getattr(self, setting):
+                raise ConfigError(
+                    (
+                        '{name}.{setting} has not been defined. Define defaults by calling '
+                        'service_host.conf.settings.configure({setting_upper}=VALUE)'
+                    ).format(
+                        name=type(self).__name__,
+                        setting=setting,
+                        setting_upper=setting.upper(),
+                    )
+                )
 
-        self.validate_config(self.get_config())
+        if not find_executable(self.path_to_node):
+            raise ConfigError(
+                (
+                    'Executable "{}" does not exist. To define a path to a node binary, call '
+                    'service_host.conf.settings.configure(PATH_TO_NODE=\'/abs/path/to/node\')'
+                ).format(self.path_to_node)
+            )
+
+        if not os.path.exists(self.source_root) or not os.path.isdir(self.source_root):
+            raise ConfigError('Source root {} does not exist or is not a directory'.format(self.source_root))
+
+        if not os.path.exists(self.get_path_to_config_file()):
+            raise ConfigError('Config file {} does not exist'.format(self.get_path_to_config_file()))
+
+        # Validate the config file
+        config = self.get_config()
+        if config is None:
+            raise ConfigError('No config has been defined')
+        if 'address' not in config:
+            raise ConfigError('No address has been defined in {}'.format(config))
+        if 'port' not in config:
+            raise ConfigError('No port has been defined in {}'.format(config))
+
+    def get_path_to_config_file(self):
+        if os.path.isabs(self.config_file):
+            return self.config_file
+        return os.path.join(self.source_root, self.config_file)
 
     def get_name(self):
         config = self.get_config()
@@ -47,7 +81,9 @@ class BaseServer(object):
         )
 
     def get_path_to_bin(self):
-        return os.path.join(self.source_root, 'node_modules', '.bin', 'service-host')
+        if os.path.isabs(settings.BIN_PATH):
+            return settings.BIN_PATH
+        return os.path.join(self.source_root, settings.BIN_PATH)
 
     def read_config_from_file(self):
         if settings.VERBOSITY >= Verbosity.ALL:
@@ -73,14 +109,6 @@ class BaseServer(object):
         if not self.config:
             self.config = self.read_config_from_file()
         return self.config
-
-    def validate_config(self, config):
-        if config is None:
-            raise ConfigError('No config has been defined')
-        if 'address' not in config:
-            raise ConfigError('No address has been defined in {}'.format(config))
-        if 'port' not in config:
-            raise ConfigError('No port has been defined in {}'.format(config))
 
     def get_url(self, endpoint=None):
         config = self.get_config()

@@ -3,7 +3,6 @@ import os
 from service_host.exceptions import ConnectionError
 from service_host.manager import Manager
 from service_host.managed_service_host import ManagedServiceHost
-from service_host.conf import settings
 from .common_service_host_tests import CommonServiceHostTests
 
 managed_host_lifecycle_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_managed_host_lifecycle.services.config.js')
@@ -15,11 +14,7 @@ class TestManagedHost(CommonServiceHostTests):
 
     @classmethod
     def setUpClass(cls):
-        cls.manager = Manager(
-            path_to_node=settings.PATH_TO_NODE,
-            source_root=settings.SOURCE_ROOT,
-            config_file=cls.common_service_host_config_file
-        )
+        cls.manager = Manager(config_file=cls.common_service_host_config_file)
         cls.manager.start()
         cls.manager.connect()
         
@@ -58,11 +53,7 @@ class TestManagedHost(CommonServiceHostTests):
         )
 
     def test_managed_host_lifecycle(self):
-        manager = Manager(
-            path_to_node=settings.PATH_TO_NODE,
-            source_root=settings.SOURCE_ROOT,
-            config_file=managed_host_lifecycle_config_file,
-        )
+        manager = Manager(config_file=managed_host_lifecycle_config_file)
 
         self.assertEqual(manager.config['port'], 23456)
 

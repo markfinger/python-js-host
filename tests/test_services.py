@@ -43,11 +43,7 @@ class TestServices(unittest.TestCase):
             name = 'test'
         service = Test()
 
-        service.host = ServiceHost(
-            settings.PATH_TO_NODE,
-            settings.SOURCE_ROOT,
-            no_services_host_config_file,
-        )
+        service.host = ServiceHost(config_file=no_services_host_config_file)
 
         self.assertIsInstance(service.host.config['services'], list)
         self.assertEqual(len(service.host.config['services']), 0)
@@ -113,7 +109,3 @@ class TestServices(unittest.TestCase):
         self.assertRaises(ServiceError, self.echo.call)
         self.assertRaises(ServiceError, self.echo.call, _echo='test')
         self.assertRaises(ServiceError, self.echo.call, foo='test')
-
-    '''
-    call
-    '''

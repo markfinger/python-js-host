@@ -1,3 +1,4 @@
+import os
 from optional_django import conf
 
 
@@ -19,11 +20,6 @@ class Verbosity(object):
 class Conf(conf.Conf):
     django_namespace = 'SERVICE_HOST'
 
-    # If True, turns on caching and deactivates the manager
-    # If False, turns off caching and activates a basic process manager
-    # which handle the host
-    PRODUCTION = True
-
     # A path that will resolve to a node binary
     PATH_TO_NODE = 'node'
 
@@ -31,15 +27,19 @@ class Conf(conf.Conf):
     # that service-host was installed into
     SOURCE_ROOT = None
 
-    # An absolute path to the config file used for the `service_host.host`
-    # singletons which services will use by default
-    CONFIG_FILE = None
+    # A path to the binary used to control hosts and managers.
+    # If the path is relative, it is appended to the SOURCE_ROOT setting
+    BIN_PATH = os.path.join('node_modules', '.bin', 'service-host')
+
+    # A path to the default config file used for hosts and managers.
+    # If the path is relative, it is appended to the SOURCE_ROOT setting.
+    CONFIG_FILE = 'services.config.js'
 
     # If True, the host will cache the output of the services until it expires.
     # This can be overridden on by services by adding `cachable = False` to the
     # subclass of `Service`, or by adding `cache: false` to the config file's
     # object for that particular service
-    CACHE = PRODUCTION
+    CACHE = True
 
     # By default this will print to the terminal whenever processes are started or
     # connected to. If you want to suppress all output, set it to
@@ -90,7 +90,7 @@ class Conf(conf.Conf):
     by calling `node node_modules/.bin/service-host path/to/services.config.js`, which
     will run a host directly, and allow you to view the host's stdout and stderr.
     """
-    USE_MANAGER = not PRODUCTION
+    USE_MANAGER = False
 
     # When the python process exits, the manager is informed to stop the host once this
     # timeout has expired. If the python process is only restarting, the manager will
@@ -105,9 +105,8 @@ class Conf(conf.Conf):
     def configure(self, **kwargs):
         super(Conf, self).configure(**kwargs)
 
-        # Connect to the server once we have enough config. This forces connection
-        # and configuration
         if self.CONNECT_ONCE_CONFIGURED:
+            # Ensure we can connect to the host
             from .host import host
             if not host.has_connected:
                 host.connect()

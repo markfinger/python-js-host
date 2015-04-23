@@ -1,7 +1,6 @@
 import json
 from service_host.exceptions import ConnectionError
 from service_host.service_host import ServiceHost
-from service_host.conf import settings
 from .common_service_host_tests import CommonServiceHostTests
 from .utils import start_host_process, stop_host_process
 
@@ -12,11 +11,7 @@ class TestServiceHost(CommonServiceHostTests):
 
     @classmethod
     def setUpClass(cls):
-        cls.host = ServiceHost(
-            path_to_node=settings.PATH_TO_NODE,
-            source_root=settings.SOURCE_ROOT,
-            config_file=cls.common_service_host_config_file
-        )
+        cls.host = ServiceHost(config_file=cls.common_service_host_config_file)
         cls.process = start_host_process(cls.host)
         cls.host.connect()
 
@@ -34,11 +29,7 @@ class TestServiceHost(CommonServiceHostTests):
         self.assertEqual(self.host.get_url('some/endpoint'), 'http://127.0.0.1:56789/some/endpoint')
 
     def test_host_connection_lifecycle(self):
-        host = ServiceHost(
-            path_to_node=settings.PATH_TO_NODE,
-            source_root=settings.SOURCE_ROOT,
-            config_file=self.common_service_host_config_file,
-        )
+        host = ServiceHost(config_file=self.common_service_host_config_file)
 
         self.assertEqual(host.config['port'], 56789)
         process = start_host_process(host, port_override=0)

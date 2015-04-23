@@ -16,11 +16,7 @@ class TestManager(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.manager = Manager(
-            path_to_node=settings.PATH_TO_NODE,
-            source_root=settings.SOURCE_ROOT,
-            config_file=manager_config_file
-        )
+        cls.manager = Manager(config_file=manager_config_file)
         cls.manager.start()
         cls.manager.connect()
 
@@ -60,11 +56,7 @@ class TestManager(unittest.TestCase):
         )
 
     def test_manager_lifecycle(self):
-        manager = Manager(
-            path_to_node=settings.PATH_TO_NODE,
-            source_root=settings.SOURCE_ROOT,
-            config_file=manager_lifecycle_config_file,
-        )
+        manager = Manager(config_file=manager_lifecycle_config_file)
 
         self.assertEqual(manager.config['port'], 34567)
 
@@ -87,11 +79,7 @@ class TestManager(unittest.TestCase):
         self.assertRaises(ConnectionError, manager.connect)
 
     def test_managers_stop_once_the_last_host_has(self):
-        manager = Manager(
-            path_to_node=settings.PATH_TO_NODE,
-            source_root=settings.SOURCE_ROOT,
-            config_file=manager_lifecycle_config_file,
-        )
+        manager = Manager(config_file=manager_lifecycle_config_file)
 
         manager.start()
         manager.connect()

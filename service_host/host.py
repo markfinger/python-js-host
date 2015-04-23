@@ -1,21 +1,28 @@
 # Exposes pre-configured singletons that the services use by default
 
 from .conf import settings
-from .utils import singleton_host_and_manager
-from .exceptions import ConfigError
+from .service_host import ServiceHost
+from .managed_service_host import ManagedServiceHost
+from .manager import Manager
 
-if not settings.PATH_TO_NODE:
-    raise ConfigError('service_host requires the PATH_TO_NODE setting to be defined')
+if settings.USE_MANAGER:
+    manager = Manager()
 
-if not settings.SOURCE_ROOT:
-    raise ConfigError('service_host requires the SOURCE_ROOT setting to be defined')
+    # Managers run as persistent processes, so it may already be running
+    if not manager.is_running():
+        manager.start()
 
-if not settings.CONFIG_FILE:
-    raise ConfigError('service_host requires the CONFIG_FILE setting to be defined')
+    manager.connect()
 
-host, manager = singleton_host_and_manager(
-    path_to_node=settings.PATH_TO_NODE,
-    source_root=settings.SOURCE_ROOT,
-    config_file=settings.CONFIG_FILE,
-    use_manager=settings.USE_MANAGER,
-)
+    host = ManagedServiceHost(manager=manager)
+
+    # Connect to a pre-existing host, or start one
+    host.start()
+    host.connect()
+else:
+    manager = None
+    host = ServiceHost()
+
+    # In production environments, the host should be run as an external process
+    # under a supervisor system. Hence, we only connect to it
+    host.connect()
