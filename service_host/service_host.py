@@ -24,7 +24,13 @@ class ServiceHost(BaseServer):
             params['cache-key'] = cache_key
 
         if settings.VERBOSITY >= Verbosity.SERVICE_CALL:
-            print('Calling service "{}" with cache-key "{}" and data {}'.format(service, cache_key, data))
+            print(
+                'Calling service "{}" with data {}{}'.format(
+                    service,
+                    data,
+                    'and cache-key {}'.format(cache_key) if cache_key else ''
+                )
+            )
 
         try:
             res = self.send_request(
