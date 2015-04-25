@@ -95,14 +95,23 @@ class TestServices(unittest.TestCase):
         settings.CACHE = _CACHE
         settings._lock()
 
-    def test_call(self):
-        self.assertEqual(self.echo.call(echo='test').text, 'test')
-        self.assertEqual(self.echo_data.call().text, '{}')
+    def test_send_request(self):
+        self.assertEqual(self.echo.send_request(echo='test').text, 'test')
+        self.assertEqual(self.echo_data.send_request().text, '{}')
         self.assertEqual(
-            json.loads(self.echo_data.call(foo=1, bar=[2, 3, {'woz': 4}]).text),
+            json.loads(self.echo_data.send_request(foo=1, bar=[2, 3, {'woz': 4}]).text),
             {'foo': 1, 'bar': [2, 3, {'woz': 4}]}
         )
-        self.assertEqual(self.async_echo.call(echo='foo').text, 'foo')
+        self.assertEqual(self.async_echo.send_request(echo='foo').text, 'foo')
+
+    def test_call(self):
+        self.assertEqual(self.echo.call(echo='test'), 'test')
+        self.assertEqual(self.echo_data.call(), '{}')
+        self.assertEqual(
+            json.loads(self.echo_data.call(foo=1, bar=[2, 3, {'woz': 4}])),
+            {'foo': 1, 'bar': [2, 3, {'woz': 4}]}
+        )
+        self.assertEqual(self.async_echo.call(echo='foo'), 'foo')
 
     def test_500_errors_are_raised_as_service_errors(self):
         self.assertRaises(ServiceError, self.error.call)

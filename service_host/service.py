@@ -27,7 +27,7 @@ class Service(object):
         if not self.name or not isinstance(self.name, six.string_types):
             raise ConfigError('Services require a `name` attribute')
 
-    def call(self, **kwargs):
+    def send_request(self, **kwargs):
         serialized_data = self.serialize_data(kwargs)
 
         cache_key = None
@@ -39,6 +39,10 @@ class Service(object):
             data=serialized_data,
             cache_key=cache_key
         )
+
+    def call(self, **kwargs):
+        res = self.send_request(**kwargs)
+        return res.text
 
     def get_host(self):
         if not self.host:
