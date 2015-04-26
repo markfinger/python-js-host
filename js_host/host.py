@@ -1,12 +1,12 @@
-# Exposes pre-configured singletons that the functions use by default
+# Exposes configured and started singletons that the Function
+# instances use by default
 
 from .conf import settings
 from .js_host import JSHost
-from .managed_js_host import ManagedJSHost
-from .manager import Manager
+from .js_host_manager import JSHostManager
 
-if settings.USE_MANAGER:
-    manager = Manager()
+if settings.DEVELOPMENT:
+    manager = JSHostManager()
 
     # Managers run as persistent processes, so it may already be running
     if not manager.is_running():
@@ -14,14 +14,10 @@ if settings.USE_MANAGER:
 
     manager.connect()
 
-    host = ManagedJSHost(manager=manager)
-
+    host = JSHost(manager=manager)
     host.start()
     host.connect()
 else:
     manager = None
     host = JSHost()
-
-    # In production environments, the host should be run as an external process
-    # under a supervisor system. Hence, we only connect to it
     host.connect()

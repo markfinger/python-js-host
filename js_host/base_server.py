@@ -28,28 +28,30 @@ class BaseServer(object):
     _ignorable_config_keys = ('outputOnListen',)
 
     def __init__(self, config_file=None, source_root=None, path_to_node=None):
-        self.config_file = config_file or settings.CONFIG_FILE
-        self.source_root = source_root or settings.SOURCE_ROOT
-        self.path_to_node = path_to_node or settings.PATH_TO_NODE
+        if not self.config_file:
+            self.config_file = config_file or settings.CONFIG_FILE
+        if not self.source_root:
+            self.source_root = source_root or settings.SOURCE_ROOT
+        if not self.path_to_node:
+            self.path_to_node = path_to_node or settings.PATH_TO_NODE
 
         for setting in ('config_file', 'source_root', 'path_to_node'):
             if not getattr(self, setting):
                 raise ConfigError(
                     (
-                        '{name}.{setting} has not been defined. Define defaults by calling '
-                        'js_host.conf.settings.configure({setting_upper}=VALUE)'
+                        'A default value for {name}.{setting} has not been defined. Please define defaults '
+                        'in js_host.conf.settings'
                     ).format(
                         name=type(self).__name__,
                         setting=setting,
-                        setting_upper=setting.upper(),
                     )
                 )
 
         if not find_executable(self.path_to_node):
             raise ConfigError(
                 (
-                    'Executable "{}" does not exist. To define a path to a node binary, call '
-                    'js_host.conf.settings.configure(PATH_TO_NODE=\'/abs/path/to/node\')'
+                    'Executable "{}" does not exist. Please define the PATH_TO_NODE setting in '
+                    'js_host.conf.settings'
                 ).format(self.path_to_node)
             )
 
@@ -169,6 +171,9 @@ class BaseServer(object):
         raise NotImplementedError()
 
     def stop(self):
+        raise NotImplementedError()
+
+    def restart(self):
         raise NotImplementedError()
 
     def get_comparable_config(self, config):

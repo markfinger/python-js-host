@@ -1,17 +1,17 @@
 import json
 from js_host.exceptions import ConnectionError
 from js_host.js_host import JSHost
-from .common_js_host_tests import CommonJSHostTests
+from .base_js_host_tests import BaseJSHostTests
 from .utils import start_host_process, stop_host_process
 
 
-class TestJSHost(CommonJSHostTests):
+class TestJSHost(BaseJSHostTests):
     __test__ = True
     process = None
 
     @classmethod
     def setUpClass(cls):
-        cls.host = JSHost(config_file=cls.common_js_host_config_file)
+        cls.host = JSHost(config_file=cls.base_js_host_config_file)
         cls.process = start_host_process(cls.host)
         cls.host.connect()
 
@@ -29,7 +29,7 @@ class TestJSHost(CommonJSHostTests):
         self.assertEqual(self.host.get_url('some/endpoint'), 'http://127.0.0.1:56789/some/endpoint')
 
     def test_host_connection_lifecycle(self):
-        host = JSHost(config_file=self.common_js_host_config_file)
+        host = JSHost(config_file=self.base_js_host_config_file)
 
         self.assertEqual(host.config['port'], 56789)
         process = start_host_process(host, port_override=0)

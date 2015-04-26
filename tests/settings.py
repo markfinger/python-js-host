@@ -6,9 +6,8 @@ settings.configure(
     # Set the default config file
     CONFIG_FILE=os.path.join('config_files', 'host.config.js'),
     # Let the manager spin up instances for us
-    USE_MANAGER=True,
-    # Force the managed hosts to stop immediately once
-    # the python process has stopped
+    DEVELOPMENT=True,
+    # Force the managed hosts to stop when the python process has stopped
     ON_EXIT_STOP_MANAGED_HOSTS_AFTER=0,
     VERBOSITY=Verbosity.SILENT,
 )

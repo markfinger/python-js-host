@@ -3,8 +3,8 @@ import os
 import unittest
 from js_host.base_server import BaseServer
 from js_host.exceptions import ConnectionError
-from js_host.manager import Manager
-from js_host.managed_js_host import ManagedJSHost
+from js_host.js_host import JSHost
+from js_host.js_host_manager import JSHostManager
 from js_host.conf import settings
 
 manager_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_manager.host.config.js')
@@ -16,7 +16,7 @@ class TestManager(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.manager = Manager(config_file=manager_config_file)
+        cls.manager = JSHostManager(config_file=manager_config_file)
         cls.manager.start()
         cls.manager.connect()
 
@@ -56,7 +56,7 @@ class TestManager(unittest.TestCase):
         )
 
     def test_manager_lifecycle(self):
-        manager = Manager(config_file=manager_lifecycle_config_file)
+        manager = JSHostManager(config_file=manager_lifecycle_config_file)
 
         self.assertEqual(manager.config['port'], 34567)
 
@@ -79,18 +79,18 @@ class TestManager(unittest.TestCase):
         self.assertRaises(ConnectionError, manager.connect)
 
     def test_managers_stop_once_the_last_host_has(self):
-        manager = Manager(config_file=manager_lifecycle_config_file)
+        manager = JSHostManager(config_file=manager_lifecycle_config_file)
 
         manager.start()
         manager.connect()
 
-        host1 = ManagedJSHost(manager)
+        host1 = JSHost(manager=manager)
         host1.start()
         host1.connect()
 
         self.assertTrue(host1.is_running())
 
-        host2 = ManagedJSHost(manager, config_file=manager_config_file)
+        host2 = JSHost(manager=manager, config_file=manager_config_file)
         host2.start()
         host2.connect()
 

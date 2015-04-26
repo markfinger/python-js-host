@@ -2,13 +2,13 @@ import os
 from js_host.conf import settings, Verbosity
 from js_host.function import Function
 
-DEBUG = True
+DEVELOPMENT = False
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 settings.configure(
-    CACHE=not DEBUG,
-    USE_MANAGER=DEBUG,
+    CACHE=not DEVELOPMENT,
+    DEVELOPMENT=not DEVELOPMENT,
     SOURCE_ROOT=BASE_DIR,
     VERBOSITY=Verbosity.PROCESS_STOP,
 )

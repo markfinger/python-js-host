@@ -1,24 +1,24 @@
 import json
 import os
 from js_host.exceptions import ConnectionError
-from js_host.manager import Manager
-from js_host.managed_js_host import ManagedJSHost
-from .common_js_host_tests import CommonJSHostTests
+from js_host.js_host_manager import JSHostManager
+from js_host.js_host import JSHost
+from .base_js_host_tests import BaseJSHostTests
 
 managed_host_lifecycle_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_managed_js_host_lifecycle.host.config.js')
 
 
-class TestManagedJSHost(CommonJSHostTests):
+class TestManagedJSHost(BaseJSHostTests):
     __test__ = True
     manager = None
 
     @classmethod
     def setUpClass(cls):
-        cls.manager = Manager(config_file=cls.common_js_host_config_file)
+        cls.manager = JSHostManager(config_file=cls.base_js_host_config_file)
         cls.manager.start()
         cls.manager.connect()
         
-        cls.host = ManagedJSHost(cls.manager)
+        cls.host = JSHost(manager=cls.manager)
         cls.host.start()
         cls.host.connect()
 
@@ -53,7 +53,7 @@ class TestManagedJSHost(CommonJSHostTests):
         )
 
     def test_managed_host_lifecycle(self):
-        manager = Manager(config_file=managed_host_lifecycle_config_file)
+        manager = JSHostManager(config_file=managed_host_lifecycle_config_file)
 
         self.assertEqual(manager.config['port'], 23456)
 
@@ -62,7 +62,7 @@ class TestManagedJSHost(CommonJSHostTests):
 
         self.assertTrue(manager.is_running())
 
-        host = ManagedJSHost(manager)
+        host = JSHost(manager=manager)
 
         # Should not be able to connect, even though a manager is running
         # on the expected port

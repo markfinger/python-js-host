@@ -6,16 +6,16 @@ from js_host.exceptions import JSFunctionError, JSFunctionTimeout
 from js_host.conf import settings
 
 
-class CommonJSHostTests(unittest.TestCase):
+class BaseJSHostTests(unittest.TestCase):
     """
-    A common test suite to be run over JSHost and any subclasses
+    A common test suite to be run over a JSHost of various configurations
     """
     # Subclasses should set this to True, to ensure the test runner
     # starts those tests
     __test__ = False
 
     host = None
-    common_js_host_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'common_js_host_tests.host.config.js')
+    base_js_host_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'base_js_host_tests.host.config.js')
 
     def test_inherits_from_base_server(self):
         self.assertIsInstance(self.host, BaseServer)
@@ -26,7 +26,9 @@ class CommonJSHostTests(unittest.TestCase):
         self.assertEqual(self.host.source_root, settings.SOURCE_ROOT)
         self.assertIsNotNone(self.host.config)
         self.assertIsInstance(self.host.config, dict)
-        self.assertEqual(self.host.config_file, self.common_js_host_config_file)
+        if self.host.config_file != self.base_js_host_config_file:
+            import pdb; pdb.set_trace()
+        self.assertEqual(self.host.config_file, self.base_js_host_config_file)
 
     def test_is_running(self):
         self.assertTrue(self.host.is_running())
