@@ -4,17 +4,19 @@
 
 Provides the plumbing to performantly pass data from Python to JavaScript, and receive the generated output.
 
-There are a variety of libraries which provide access to JS engines, [PyExecJS](https://github.com/doloopwhile/PyExecJS) et al, but they only provide basic functionality, 
-suffer performance problems, and require you to generate strings of JS which are evaluated. 
+There are a variety of libraries which provide access to JS engines, PyExecJS et al, but they only
+provide basic functionality, suffer performance problems, and require you to generate strings of 
+JS which are evaluated. 
 
-[js-host](https://github.com/markfinger/js-host) avoids these issues by providing a performant and 
-persistent JS environment which responds over the network. Behind the scenes, the python layer 
-provides the bindings necessary to connect to a running environment, call specific functions and 
-receive their output.
+The [js-host](https://github.com/markfinger/js-host) package avoids these issues by providing a performant 
+and persistent JS environment with easy access to the entire node & io.js ecosystem.
 
-To reduce the pains of integrating another environment into your development stack, a 
-[manager process](#jshostmanager) is provided to automatically spawn JS hosts which run in 
-the background and persist only as long as your python process is running.
+This python layer provides the bindings necessary to connect to a running environment, call specific 
+functions and receive their output.
+
+To reduce the pains of integrating yet another technology into your development stack, a 
+[manager process](#jshostmanager) is provided as a dev tool. The manager runs in the background
+and spawn JS hosts which persist only as long as your python process is running.
 
 
 Installation
@@ -207,40 +209,40 @@ host.restart()
 your local network and spawns [js-host](https://github.com/markfinger/js-host) 
 instances on demand.
 
-Do **not** use the manager in production, it exists purely to solve issues relating
+Note: do **not** use the manager in production, it only aims to solve issues relating
 to the typical development environment. Please refer to the 
 [usage in production](#usage-in-production) section before setting up a production
 environment.
 
-Managers exist to solve the following problems:
+Managers solve the following problems:
 
 - Many of the typical JS functions involve processes which have an initial overhead,
   but are performant after the first run, compilers are the usual example. If a host
   runs as a child process of the python process, it will have to restart whenever the
   python process does. Given the frequent restarts of python development servers,
-  the aforementioned issues of a compiler's inital overhead become painful very quickly.
-- If you run the node process as a detached child, the performance is better, but this 
-  introduces additional overheads as you need to ensure that the process is inevitably 
-  stopped. The manager does this for you automatically - once your python process has 
-  stopped running, the manager waits for a small time period and then stops the 
-  host as well. When the manager is no longer responsible for any hosts, it will stop 
-  its own process.
-- Using a manager removes the need for staff and other developers to run yet-another-command 
-  when starting or running a project. Removing unwanted overhead makes everyone's life 
-  a lot happier.
+  the issue of a compiler's inital overhead becomes painful very quickly.
+- If you run the host process as a detached child, the lack of restarts will improve 
+  performance, but it introduces additional overheads as you need to ensure that the 
+  process is inevitably stopped. The manager does this for you automatically - once 
+  your python process has stopped running, the manager will wait for a small time 
+  period and then stop the JS host as well. Once the manager is no longer responsible 
+  for any hosts, it stops its own process as well.
+- Using a manager removes the need for staff and other developers to run yet another command 
+  when starting or running a project. Removing unwanted overhead with tools that 'just work' 
+  lets everyone focus on making cool stuff.
 
-Managers have some identified issues:
+Be aware that managers have some identified issues:
 
-- Managers and managed hosts do not provide a means to inspect their stdout or stderr,
-  which can complicate debugging as you rely on the host's response cycle to introspect
-  an environment. [This issue is tracked in #3](markfinger/python-js-host#3)
-- Managed hosts will persist even when their config file has changed. To force a restart 
-  of a managed host, call `restart` on a `JSHost` instance. For example:
+- Managed hosts can persist after their config file has changed. To force a restart of a 
+  managed host, call `restart` on a `JSHost` instance. For example:
   ```
   from js_host.host import host
   
   host.restart()
   ```
+- Managers and managed hosts do not currently provide a means to inspect their stdout or 
+  stderr. This can complicate debugging as you need to rely on the host's response cycle 
+  to introspect an environment. [This issue is tracked in #3](markfinger/python-js-host#3)
 
 If you wish to avoid these issues, you are recommended to set the `USE_MANGER` setting
 to `False`, and start hosts manually.
@@ -249,14 +251,60 @@ to `False`, and start hosts manually.
 Settings
 --------
 
+```python
+PATH_TO_NODE = 'node'
+
+# An absolute path to the directory containing the node_modules directory
+# that js-host was installed into
+SOURCE_ROOT = None
+
+# A path to the binary used to control hosts and managers.
+# If the path is relative, it is appended to the SOURCE_ROOT setting
+BIN_PATH = os.path.join('node_modules', '.bin', 'js-host')
+
+# A path to the default config file used for hosts and managers.
+# If the path is relative, it is appended to the SOURCE_ROOT setting.
+CONFIG_FILE = 'host.config.js'
+
+# If True, the host will cache the output of the functions until it expires.
+# This can be overridden on functions by adding `cachable = False` to the
+# subclass of `Function`, or by adding `cache: false` to the config file's
+# object for that particular function
+CACHE = False
+
+# By default this will print to the terminal whenever processes are started or
+# connected to. If you want to suppress all output, set it to
+# `js_host.conf.Verbosity.SILENT`
+VERBOSITY = Verbosity.PROCESS_START
+
+FUNCTION_TIMEOUT = 10.0
+
+# DO *NOT* USE THE MANAGER IN PRODUCTION
+# Indicates that a manager be used to spawn host instances
+USE_MANAGER = False
+
+# When the python process exits, the manager is informed to stop the host once this
+# timeout has expired. If the python process is only restarting, the manager will
+# cancel the timeout once it has reconnected. If the python process is shutting down
+# for good, the manager will stop the host's process shortly.
+ON_EXIT_STOP_MANAGED_HOSTS_AFTER = 10 * 1000  # 10 seconds
+
+# Once the js host has been configured, attempt to connect. This enables any
+# config or connection errors to be raised during startup, rather than runtime
+CONNECT_ONCE_CONFIGURED = True
+```
 
 Django integration
 ------------------
 
+settings namespace
+INSTALLED_APPS to ensure the host starts/connects on startup
 
 Usage in development
 --------------------
 
+USE_MANAGER = True
+`host.restart()` to load a new config
 
 Usage in production
 -------------------
