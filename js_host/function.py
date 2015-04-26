@@ -26,7 +26,7 @@ class Function(object):
             self.cacheable = cacheable
 
         if not self.name or not isinstance(self.name, six.string_types):
-            raise ConfigError('Functions require a `name`')
+            raise ConfigError('Functions require a name argument')
 
     def send_request(self, **kwargs):
         serialized_data = self.serialize_data(kwargs)
