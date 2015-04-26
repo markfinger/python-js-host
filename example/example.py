@@ -1,6 +1,6 @@
 import os
-from service_host.conf import settings, Verbosity
-from service_host.service import Service
+from js_host.conf import settings, Verbosity
+from js_host.function import Function
 
 DEBUG = True
 
@@ -10,11 +10,12 @@ settings.configure(
     CACHE=not DEBUG,
     USE_MANAGER=DEBUG,
     SOURCE_ROOT=BASE_DIR,
+    VERBOSITY=Verbosity.PROCESS_STOP,
 )
 
-hello_world = Service('hello_world')
-double = Service('double')
-read_file = Service('read_file')
+hello_world = Function('hello_world')
+double = Function('double')
+read_file = Function('read_file')
 
 if __name__ == '__main__':
     print('')
@@ -27,7 +28,7 @@ if __name__ == '__main__':
 
     print('Response: ' + double.call(number=number) + '\n')
 
-    filename = raw_input('Enter a file to read (defaults to services.config.js): ')
-    filename = filename or 'services.config.js'
+    filename = raw_input('Enter a file to read (defaults to host.config.js): ')
+    filename = filename or 'host.config.js'
 
-    print('Response: ' + read_file.call(file=os.path.join(BASE_DIR, filename)) + '\n')
+    print('Response: \n' + read_file.call(file=os.path.join(BASE_DIR, filename)) + '\n')

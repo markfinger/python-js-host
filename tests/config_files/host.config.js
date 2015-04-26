@@ -1,7 +1,7 @@
-// The config file used by the singleton ManagedServiceHost in service_host.host
+// The config file used by the singleton ManagedJSHost in js_host.host
 
 module.exports = {
-	services: {
+	functions: {
 		echo: function(data, done) {
 			if (!data.echo) {
 				return done(new Error('No `echo` prop provided'));
@@ -12,7 +12,7 @@ module.exports = {
 			done(null, JSON.stringify(data));
 		},
 		error: function(data, done) {
-			done(new Error('Hello from error service'));
+			done(new Error('Hello from error function'));
 		},
 		async_echo: function(data, done) {
 			setTimeout(function() {

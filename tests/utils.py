@@ -1,12 +1,12 @@
 import subprocess
 import json
 import atexit
-from service_host.service_host import ServiceHost
-from service_host.conf import settings, Verbosity
+from js_host.js_host import JSHost
+from js_host.conf import settings, Verbosity
 
 
 def start_host_process(host, port_override=None):
-    assert isinstance(host, ServiceHost)
+    assert isinstance(host, JSHost)
 
     cmd = (
         host.path_to_node,
@@ -51,7 +51,7 @@ def start_host_process(host, port_override=None):
 
 def stop_host_process(host, process):
     # Sanity checks
-    assert isinstance(host, ServiceHost)
+    assert isinstance(host, JSHost)
     assert process is not None
 
     if host.is_running():

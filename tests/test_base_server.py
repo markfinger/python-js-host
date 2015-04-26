@@ -1,12 +1,12 @@
 import os
 import unittest
-from service_host.base_server import BaseServer
-from service_host.exceptions import ConfigError
-from service_host.conf import settings
+from js_host.base_server import BaseServer
+from js_host.exceptions import ConfigError
+from js_host.conf import settings
 
 missing_config_file = os.path.join(os.path.dirname(__file__), 'config_files', '__non_existent_file__')
-empty_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'empty.services.config.js')
-base_server_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_base_server.services.config.js')
+empty_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'empty.host.config.js')
+base_server_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_base_server.host.config.js')
 
 
 class TestBaseServer(unittest.TestCase):

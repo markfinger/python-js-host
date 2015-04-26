@@ -1,11 +1,13 @@
+// The code that the host loads and runs
+
 var fs = require('fs');
 
 module.exports = {
-	services: {
+	functions: {
 		hello_world: function(data, cb) {
 			if (!data.name) return cb(new Error('No name was provided'));
 
-			cb(null, 'Hello ' + data.name);
+			cb(null, 'Hello, ' + data.name + '!');
 		},
 		double: function(data, cb) {
 			if (!data.number) return cb(new Error('No number was provided'));

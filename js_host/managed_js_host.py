@@ -1,12 +1,12 @@
 import json
 import atexit
 import time
-from .service_host import ServiceHost
+from .js_host import JSHost
 from .conf import settings, Verbosity
 from .exceptions import UnexpectedResponse
 
 
-class ManagedServiceHost(ServiceHost):
+class ManagedJSHost(JSHost):
     manager = None
 
     def __init__(self, manager, config_file=None):
@@ -21,7 +21,7 @@ class ManagedServiceHost(ServiceHost):
             self.config_file = self.manager.get_path_to_config_file()
             self.config = self.manager.get_config()
 
-        super(ManagedServiceHost, self).__init__(
+        super(ManagedJSHost, self).__init__(
             config_file=self.get_path_to_config_file(),
             source_root=manager.source_root,
             path_to_node=manager.path_to_node,

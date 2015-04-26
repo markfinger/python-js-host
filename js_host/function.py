@@ -6,10 +6,11 @@ from .conf import settings
 from .exceptions import ConfigError
 
 
-class Service(object):
+class Function(object):
     name = None
     host = None
     cacheable = True
+    timeout = settings.FUNCTION_TIMEOUT
 
     # Read in from the config file
     config = None
@@ -25,7 +26,7 @@ class Service(object):
             self.cacheable = cacheable
 
         if not self.name or not isinstance(self.name, six.string_types):
-            raise ConfigError('Services require a `name` attribute')
+            raise ConfigError('Functions require a `name`')
 
     def send_request(self, **kwargs):
         serialized_data = self.serialize_data(kwargs)
@@ -34,10 +35,11 @@ class Service(object):
         if self.is_cacheable():
             cache_key = self.generate_cache_key(serialized_data, kwargs)
 
-        return self.get_host().send_request_to_service(
-            service=self.name,
+        return self.get_host().call_function(
+            function=self.name,
             data=serialized_data,
-            cache_key=cache_key
+            key=cache_key,
+            timeout=self.timeout,
         )
 
     def call(self, **kwargs):
@@ -62,14 +64,14 @@ class Service(object):
             host = self.get_host()
             host_config = host.get_config()
 
-            if 'services' not in host_config:
-                raise ConfigError('Service host config is missing a `services` property')
+            if 'functions' not in host_config:
+                raise ConfigError('Host config is missing a `functions` property')
 
-            config = [obj for obj in host_config['services'] if 'name' in obj and obj['name'] == name]
+            config = [obj for obj in host_config['functions'] if 'name' in obj and obj['name'] == name]
 
             if len(config) == 0:
                 raise ConfigError(
-                    '{host_name} has no configured service matching "{name}"'.format(
+                    '{host_name} has no configured function matching "{name}"'.format(
                         host_name=host.get_name(),
                         name=name,
                     )
@@ -77,7 +79,7 @@ class Service(object):
 
             if len(config) > 1:
                 raise ConfigError(
-                    '{host_name} has multiple configured services matching {name}'.format(
+                    '{host_name} has multiple configured functions matching {name}'.format(
                         host_name=host.get_name(),
                         name=name,
                     )
@@ -87,7 +89,7 @@ class Service(object):
 
             if not isinstance(config, dict):
                 raise ConfigError(
-                    'Service "{name}" cannot determine a config object from {config_file}'.format(
+                    'Function "{name}" cannot determine a config object from {config_file}'.format(
                         name=name,
                         config_file=host.config_file,
                     )
@@ -101,7 +103,7 @@ class Service(object):
         return json.dumps(data, cls=JSONEncoder)
 
     def is_cacheable(self):
-        # Respect the global setting, the service's attribute, and the config file
+        # Respect the global setting, the function's attribute, and the config file
         return settings.CACHE and self.cacheable and self.get_config().get('cache', True)
 
     def generate_cache_key(self, serialized_data, data):

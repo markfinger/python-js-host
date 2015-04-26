@@ -1,58 +1,58 @@
 import json
 import os
 import unittest
-from service_host.exceptions import ConfigError, ServiceError
-from service_host.service import Service
-from service_host.conf import settings
-from service_host.service_host import ServiceHost
-from service_host.host import host
+from js_host.exceptions import ConfigError, JSFunctionError
+from js_host.function import Function
+from js_host.conf import settings
+from js_host.js_host import JSHost
+from js_host.host import host
 
-no_services_host_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'no_services.services.config.js')
+no_functions_host_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'no_functions.host.config.js')
 
 
-class TestServices(unittest.TestCase):
+class TestFunctions(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.echo = Service('echo')
-        cls.echo_data = Service('echo_data')
-        cls.async_echo = Service('async_echo')
-        cls.error = Service('error')
+        cls.echo = Function('echo')
+        cls.echo_data = Function('echo_data')
+        cls.async_echo = Function('async_echo')
+        cls.error = Function('error')
 
     def test_is_instantiated_properly(self):
-        service = Service(name='foo')
+        function = Function(name='foo')
 
-        self.assertEqual(service.name, 'foo')
-        self.assertEqual(service.host, None)
-        self.assertEqual(service.cacheable, True)
+        self.assertEqual(function.name, 'foo')
+        self.assertEqual(function.host, None)
+        self.assertEqual(function.cacheable, True)
 
     def test_name_is_required(self):
-        self.assertRaises(ConfigError, Service)
+        self.assertRaises(ConfigError, Function)
 
     def test_host_is_bound_lazily(self):
-        service = Service(name='test')
-        self.assertIsNone(service.host)
-        self.assertEqual(service.get_host(), host)
-        self.assertEqual(service.host, host)
+        function = Function(name='test')
+        self.assertIsNone(function.host)
+        self.assertEqual(function.get_host(), host)
+        self.assertEqual(function.host, host)
 
     def test_get_name(self):
         self.assertEqual(self.echo.get_name(), self.echo.name)
 
     def test_get_config_validates_the_host_config(self):
-        class Test(Service):
+        class Test(Function):
             name = 'test'
-        service = Test()
+        function = Test()
 
-        service.host = ServiceHost(config_file=no_services_host_config_file)
+        function.host = JSHost(config_file=no_functions_host_config_file)
 
-        self.assertIsInstance(service.host.config['services'], list)
-        self.assertEqual(len(service.host.config['services']), 0)
+        self.assertIsInstance(function.host.config['functions'], list)
+        self.assertEqual(len(function.host.config['functions']), 0)
 
-        self.assertRaises(ConfigError, service.get_config)
+        self.assertRaises(ConfigError, function.get_config)
 
-        service.host.config['services'].append({'name': 'test', 'cache': False})
+        function.host.config['functions'].append({'name': 'test', 'cache': False})
 
-        self.assertEqual(service.get_config(), {'name': 'test', 'cache': False})
+        self.assertEqual(function.get_config(), {'name': 'test', 'cache': False})
 
     def test_generate_cache_key(self):
         self.assertEqual(
@@ -72,7 +72,7 @@ class TestServices(unittest.TestCase):
         settings._unlock()
         settings.CACHE = True
 
-        class Uncacheable(Service):
+        class Uncacheable(Function):
             name = 'echo'
             cacheable = False
         uncacheable = Uncacheable()
@@ -113,8 +113,8 @@ class TestServices(unittest.TestCase):
         )
         self.assertEqual(self.async_echo.call(echo='foo'), 'foo')
 
-    def test_500_errors_are_raised_as_service_errors(self):
-        self.assertRaises(ServiceError, self.error.call)
-        self.assertRaises(ServiceError, self.echo.call)
-        self.assertRaises(ServiceError, self.echo.call, _echo='test')
-        self.assertRaises(ServiceError, self.echo.call, foo='test')
+    def test_500_errors_are_raised_as_Function_errors(self):
+        self.assertRaises(JSFunctionError, self.error.call)
+        self.assertRaises(JSFunctionError, self.echo.call)
+        self.assertRaises(JSFunctionError, self.echo.call, _echo='test')
+        self.assertRaises(JSFunctionError, self.echo.call, foo='test')

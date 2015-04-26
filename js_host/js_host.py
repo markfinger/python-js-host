@@ -2,11 +2,11 @@ import sys
 from optional_django import six
 from requests.exceptions import ConnectionError as RequestsConnectionError, ReadTimeout
 from .conf import settings, Verbosity
-from .exceptions import ServiceError, UnexpectedResponse, ConnectionError, ServiceTimeout
+from .exceptions import JSFunctionError, UnexpectedResponse, ConnectionError, JSFunctionTimeout
 from .base_server import BaseServer
 
 
-class ServiceHost(BaseServer):
+class JSHost(BaseServer):
     type_name = 'Host'
 
     def start(self):
@@ -15,26 +15,26 @@ class ServiceHost(BaseServer):
     def stop(self):
         raise NotImplementedError('{} must be stopped manually'.format(self.get_name()))
 
-    def send_request_to_service(self, service, data=None, cache_key=None, timeout=None):
+    def call_function(self, function, data=None, key=None, timeout=None):
         if not self.has_connected:
             raise ConnectionError('{} has not connected'.format(self.get_name()))
 
         params = {}
-        if cache_key:
-            params['cache-key'] = cache_key
+        if key:
+            params['key'] = key
 
-        if settings.VERBOSITY >= Verbosity.SERVICE_CALL:
+        if settings.VERBOSITY >= Verbosity.FUNCTION_CALL:
             print(
-                'Calling service "{}" with data {}{}'.format(
-                    service,
+                'Calling function "{}" with data {}{}'.format(
+                    function,
                     data,
-                    'and cache-key {}'.format(cache_key) if cache_key else ''
+                    'and key {}'.format(key) if key else ''
                 )
             )
 
         try:
             res = self.send_request(
-                'service/' + service,
+                'function/' + function,
                 params=params,
                 headers={'content-type': 'application/json'},
                 post=True,
@@ -44,20 +44,20 @@ class ServiceHost(BaseServer):
         except RequestsConnectionError as e:
             raise six.reraise(ConnectionError, ConnectionError(*e.args), sys.exc_info()[2])
         except ReadTimeout as e:
-            raise six.reraise(ServiceTimeout, ServiceTimeout(*e.args), sys.exc_info()[2])
+            raise six.reraise(JSFunctionTimeout, JSFunctionTimeout(*e.args), sys.exc_info()[2])
 
         if res.status_code == 500:
-            raise ServiceError(
-                '{service}: {res_text}'.format(
-                    service=service,
+            raise JSFunctionError(
+                '{function}: {res_text}'.format(
+                    function=function,
                     res_text=res.text,
                 )
             )
 
         if res.status_code != 200:
             raise UnexpectedResponse(
-                'Called service "{name}". {res_code}: {res_text}'.format(
-                    name=service,
+                'Called function "{function}". {res_code}: {res_text}'.format(
+                    function=function,
                     res_code=res.status_code,
                     res_text=res.text,
                 )

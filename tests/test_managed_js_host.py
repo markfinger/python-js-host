@@ -1,24 +1,24 @@
 import json
 import os
-from service_host.exceptions import ConnectionError
-from service_host.manager import Manager
-from service_host.managed_service_host import ManagedServiceHost
-from .common_service_host_tests import CommonServiceHostTests
+from js_host.exceptions import ConnectionError
+from js_host.manager import Manager
+from js_host.managed_js_host import ManagedJSHost
+from .common_js_host_tests import CommonJSHostTests
 
-managed_host_lifecycle_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_managed_host_lifecycle.services.config.js')
+managed_host_lifecycle_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_managed_js_host_lifecycle.host.config.js')
 
 
-class TestManagedHost(CommonServiceHostTests):
+class TestManagedJSHost(CommonJSHostTests):
     __test__ = True
     manager = None
 
     @classmethod
     def setUpClass(cls):
-        cls.manager = Manager(config_file=cls.common_service_host_config_file)
+        cls.manager = Manager(config_file=cls.common_js_host_config_file)
         cls.manager.start()
         cls.manager.connect()
         
-        cls.host = ManagedServiceHost(cls.manager)
+        cls.host = ManagedJSHost(cls.manager)
         cls.host.start()
         cls.host.connect()
 
@@ -30,7 +30,7 @@ class TestManagedHost(CommonServiceHostTests):
     def test_can_read_in_config(self):
         self.assertEqual(self.host.get_config(), self.host.config)
         self.assertEqual(self.host.config['address'], '127.0.0.1')
-        self.assertIsNotNone(self.host.config['services'])
+        self.assertIsNotNone(self.host.config['functions'])
         self.assertIsInstance(self.host.config, dict)
 
         # Ensure the manager runs on the designated port and
@@ -62,7 +62,7 @@ class TestManagedHost(CommonServiceHostTests):
 
         self.assertTrue(manager.is_running())
 
-        host = ManagedServiceHost(manager)
+        host = ManagedJSHost(manager)
 
         # Should not be able to connect, even though a manager is running
         # on the expected port

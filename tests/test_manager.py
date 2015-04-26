@@ -1,14 +1,14 @@
 import json
 import os
 import unittest
-from service_host.base_server import BaseServer
-from service_host.exceptions import ConnectionError
-from service_host.manager import Manager
-from service_host.managed_service_host import ManagedServiceHost
-from service_host.conf import settings
+from js_host.base_server import BaseServer
+from js_host.exceptions import ConnectionError
+from js_host.manager import Manager
+from js_host.managed_js_host import ManagedJSHost
+from js_host.conf import settings
 
-manager_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_manager.services.config.js')
-manager_lifecycle_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_manager_lifecycle.services.config.js')
+manager_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_manager.host.config.js')
+manager_lifecycle_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_manager_lifecycle.host.config.js')
 
 
 class TestManager(unittest.TestCase):
@@ -39,7 +39,7 @@ class TestManager(unittest.TestCase):
         self.assertEqual(self.manager.get_config(), self.manager.config)
         self.assertEqual(self.manager.config['address'], '127.0.0.1')
         self.assertEqual(self.manager.config['port'], 45678)
-        self.assertIsNone(self.manager.config['services'])
+        self.assertIsNone(self.manager.config['functions'])
 
     def test_can_produce_url_to_itself(self):
         self.assertEqual(self.manager.get_url(), 'http://127.0.0.1:45678')
@@ -84,13 +84,13 @@ class TestManager(unittest.TestCase):
         manager.start()
         manager.connect()
 
-        host1 = ManagedServiceHost(manager)
+        host1 = ManagedJSHost(manager)
         host1.start()
         host1.connect()
 
         self.assertTrue(host1.is_running())
 
-        host2 = ManagedServiceHost(manager, config_file=manager_config_file)
+        host2 = ManagedJSHost(manager, config_file=manager_config_file)
         host2.start()
         host2.connect()
 

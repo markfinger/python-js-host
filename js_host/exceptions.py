@@ -6,11 +6,11 @@ class ConnectionError(Exception):
     pass
 
 
-class ServiceError(Exception):
+class JSFunctionError(Exception):
     pass
 
 
-class ServiceTimeout(Exception):
+class JSFunctionTimeout(Exception):
     pass
 
 

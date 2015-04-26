@@ -1,8 +1,8 @@
-# Exposes pre-configured singletons that the services use by default
+# Exposes pre-configured singletons that the functions use by default
 
 from .conf import settings
-from .service_host import ServiceHost
-from .managed_service_host import ManagedServiceHost
+from .js_host import JSHost
+from .managed_js_host import ManagedJSHost
 from .manager import Manager
 
 if settings.USE_MANAGER:
@@ -14,14 +14,13 @@ if settings.USE_MANAGER:
 
     manager.connect()
 
-    host = ManagedServiceHost(manager=manager)
+    host = ManagedJSHost(manager=manager)
 
-    # Connect to a pre-existing host, or start one
     host.start()
     host.connect()
 else:
     manager = None
-    host = ServiceHost()
+    host = JSHost()
 
     # In production environments, the host should be run as an external process
     # under a supervisor system. Hence, we only connect to it

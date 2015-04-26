@@ -37,7 +37,7 @@ class BaseServer(object):
                 raise ConfigError(
                     (
                         '{name}.{setting} has not been defined. Define defaults by calling '
-                        'service_host.conf.settings.configure({setting_upper}=VALUE)'
+                        'js_host.conf.settings.configure({setting_upper}=VALUE)'
                     ).format(
                         name=type(self).__name__,
                         setting=setting,
@@ -49,7 +49,7 @@ class BaseServer(object):
             raise ConfigError(
                 (
                     'Executable "{}" does not exist. To define a path to a node binary, call '
-                    'service_host.conf.settings.configure(PATH_TO_NODE=\'/abs/path/to/node\')'
+                    'js_host.conf.settings.configure(PATH_TO_NODE=\'/abs/path/to/node\')'
                 ).format(self.path_to_node)
             )
 
