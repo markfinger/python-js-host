@@ -5,7 +5,7 @@ from .conf import settings
 from .js_host import JSHost
 from .js_host_manager import JSHostManager
 
-if settings.DEVELOPMENT:
+if settings.USE_MANAGER:
     manager = JSHostManager()
 
     # Managers run as persistent processes, so it may already be running

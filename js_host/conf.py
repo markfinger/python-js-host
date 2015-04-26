@@ -92,7 +92,7 @@ class Conf(conf.Conf):
     by calling `node node_modules/.bin/js-host host.config.js`, which
     will run a host directly, and allow you to view the host's stdout and stderr.
     """
-    DEVELOPMENT = False
+    USE_MANAGER = False
 
     # When the python process exits, the manager is informed to stop the host once this
     # timeout has expired. If the python process is only restarting, the manager will
