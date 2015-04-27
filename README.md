@@ -254,8 +254,7 @@ Settings
 ```python
 PATH_TO_NODE = 'node'
 
-# An absolute path to the directory containing the node_modules directory
-# that js-host was installed into
+# An absolute path to the directory which contains your node_modules directory
 SOURCE_ROOT = None
 
 # A path to the binary used to control hosts and managers.
@@ -279,8 +278,8 @@ VERBOSITY = Verbosity.PROCESS_START
 
 FUNCTION_TIMEOUT = 10.0
 
+# Indicates that a manager should be used to spawn host instances
 # DO *NOT* USE THE MANAGER IN PRODUCTION
-# Indicates that a manager be used to spawn host instances
 USE_MANAGER = False
 
 # When the python process exits, the manager is informed to stop the host once this
