@@ -23,8 +23,7 @@ class Conf(conf.Conf):
     # A path that will resolve to a node binary
     PATH_TO_NODE = 'node'
 
-    # An absolute path to the directory containing the node_modules directory
-    # that js-host was installed into
+    # An absolute path to the directory which contains your node_modules directory
     SOURCE_ROOT = None
 
     # A path to the binary used to control hosts and managers.
@@ -48,50 +47,8 @@ class Conf(conf.Conf):
 
     FUNCTION_TIMEOUT = 10.0
 
-    """
-    DO *NOT* USE THE MANAGER IN PRODUCTION
-    --------------------------------------
-
-    If set to True, a manager process will be used to start and stop host processes.
-    The manager runs at the port used by the config - either the defined or default
-    one - and whenever a request comes in to start a host, it will either start
-    it up or simply inform the python process where to find it.
-
-    Do *not* use the manager in production, it exists purely to solve issues relating
-    to the typical development environment:
-
-    - Many of the typical JS functions involve processes which have an initial overhead,
-     but are performant after the first run, compilers are the usual example. Using a
-     persistent process enables functions to maintain a warm cache of the project's
-     assets.
-
-    - Running a persistent node process involves manually starting a node process
-     with the proper incantation, which adds unwanted overhead on staff that are not
-     familiar with the technology.
-
-    - If the node process is started programmatically as a child of the python process,
-     it will be need to be restarted with the the python process. Given the frequent
-     restarts of python development servers, this delays the immediate feedback
-     resulting from code changes.
-
-    - If you run the node process as a detached child, this introduces additional
-     overheads as you need to ensure that the process is inevitably stopped. The
-     manager does this automatically, once a connection has been closed for a
-     certain time period.
-
-    The manager comes with certain downsides:
-
-    - It complicates the process of getting access to the stdout/stderr of either the
-     manager or the host. Hence, if the host goes down outside of a request cycle,
-     there is no indication as to the reasons why.
-    - The manager runs the host on a pseudo-random port allocated by the OS, this
-     introduces an unlikely - but technically possible - opportunity for a port collision
-     to occur.
-
-    If you wish to avoid these issues, you can simply run the host as a normal process,
-    by calling `node node_modules/.bin/js-host host.config.js`, which
-    will run a host directly, and allow you to view the host's stdout and stderr.
-    """
+    # Indicates that a manager should be used to spawn host instances
+    # DO *NOT* USE THE MANAGER IN PRODUCTION
     USE_MANAGER = False
 
     # When the python process exits, the manager is informed to stop the host once this

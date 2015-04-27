@@ -2,7 +2,7 @@ import sys
 from optional_django import six
 from requests.exceptions import ConnectionError as RequestsConnectionError, ReadTimeout
 from .conf import settings, Verbosity
-from .exceptions import JSFunctionError, UnexpectedResponse, ConnectionError, JSFunctionTimeout
+from .exceptions import FunctionError, UnexpectedResponse, ConnectionError, FunctionTimeout
 from .base_server import BaseServer
 
 
@@ -87,10 +87,10 @@ class JSHost(BaseServer):
         except RequestsConnectionError as e:
             raise six.reraise(ConnectionError, ConnectionError(*e.args), sys.exc_info()[2])
         except ReadTimeout as e:
-            raise six.reraise(JSFunctionTimeout, JSFunctionTimeout(*e.args), sys.exc_info()[2])
+            raise six.reraise(FunctionTimeout, FunctionTimeout(*e.args), sys.exc_info()[2])
 
         if res.status_code == 500:
-            raise JSFunctionError(
+            raise FunctionError(
                 '{function}: {res_text}'.format(
                     function=function,
                     res_text=res.text,

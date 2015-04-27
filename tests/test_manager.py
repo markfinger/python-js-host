@@ -4,7 +4,7 @@ import unittest
 from js_host.base_server import BaseServer
 from js_host.exceptions import ConnectionError
 from js_host.js_host import JSHost
-from js_host.js_host_manager import JSHostManager
+from js_host.manager import JSHostManager
 from js_host.conf import settings
 
 manager_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_manager.host.config.js')

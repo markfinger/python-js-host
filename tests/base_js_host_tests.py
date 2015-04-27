@@ -2,7 +2,7 @@ import os
 import unittest
 import json
 from js_host.base_server import BaseServer
-from js_host.exceptions import JSFunctionError, JSFunctionTimeout
+from js_host.exceptions import FunctionError, FunctionTimeout
 from js_host.conf import settings
 
 
@@ -34,16 +34,16 @@ class BaseJSHostTests(unittest.TestCase):
         self.assertTrue(self.host.is_running())
 
     def test_can_handle_errors(self):
-        self.assertRaises(JSFunctionError, self.host.call_function, 'echo')
+        self.assertRaises(FunctionError, self.host.call_function, 'echo')
 
-        self.assertRaises(JSFunctionError, self.host.call_function, 'async_echo')
+        self.assertRaises(FunctionError, self.host.call_function, 'async_echo')
 
-        self.assertRaises(JSFunctionError, self.host.call_function, 'error')
+        self.assertRaises(FunctionError, self.host.call_function, 'error')
 
         try:
             self.host.call_function('error')
-            raise Exception('A JSFunctionError should have been raised before this line')
-        except JSFunctionError as e:
+            raise Exception('A FunctionError should have been raised before this line')
+        except FunctionError as e:
             self.assertIn('Hello from error function', str(e))
 
     def test_can_cache_content(self):
@@ -76,7 +76,7 @@ class BaseJSHostTests(unittest.TestCase):
 
     def test_can_handle_function_timeouts(self):
         self.assertRaises(
-            JSFunctionTimeout,
+            FunctionTimeout,
             self.host.call_function,
             'async_echo',
             timeout=0.2

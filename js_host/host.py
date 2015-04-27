@@ -1,9 +1,8 @@
-# Exposes configured and started singletons that the Function
-# instances use by default
+# Exposes convenience singletons which are configured, connected, and started
 
 from .conf import settings
 from .js_host import JSHost
-from .js_host_manager import JSHostManager
+from .manager import JSHostManager
 
 if settings.USE_MANAGER:
     manager = JSHostManager()

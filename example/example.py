@@ -13,7 +13,7 @@ settings.configure(
     VERBOSITY=Verbosity.PROCESS_STOP,
 )
 
-hello_world = Function('hello_world')
+greet = Function('greet')
 double = Function('double')
 read_file = Function('read_file')
 
@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     name = raw_input('Enter your name: ')
 
-    print('Response: ' + hello_world.call(name=name) + '\n')
+    print('Response: ' + greet.call(name=name) + '\n')
 
     number = input('Enter a number to double: ')
 

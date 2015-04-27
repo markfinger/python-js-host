@@ -1,7 +1,7 @@
 import json
 import os
 import unittest
-from js_host.exceptions import ConfigError, JSFunctionError
+from js_host.exceptions import ConfigError, FunctionError
 from js_host.function import Function
 from js_host.conf import settings
 from js_host.js_host import JSHost
@@ -114,7 +114,7 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(self.async_echo.call(echo='foo'), 'foo')
 
     def test_500_errors_are_raised_as_Function_errors(self):
-        self.assertRaises(JSFunctionError, self.error.call)
-        self.assertRaises(JSFunctionError, self.echo.call)
-        self.assertRaises(JSFunctionError, self.echo.call, _echo='test')
-        self.assertRaises(JSFunctionError, self.echo.call, foo='test')
+        self.assertRaises(FunctionError, self.error.call)
+        self.assertRaises(FunctionError, self.echo.call)
+        self.assertRaises(FunctionError, self.echo.call, _echo='test')
+        self.assertRaises(FunctionError, self.echo.call, foo='test')

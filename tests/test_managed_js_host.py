@@ -1,7 +1,7 @@
 import json
 import os
 from js_host.exceptions import ConnectionError
-from js_host.js_host_manager import JSHostManager
+from js_host.manager import JSHostManager
 from js_host.js_host import JSHost
 from .base_js_host_tests import BaseJSHostTests
 

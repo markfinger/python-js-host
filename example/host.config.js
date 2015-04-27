@@ -4,7 +4,7 @@ var fs = require('fs');
 
 module.exports = {
 	functions: {
-		hello_world: function(data, cb) {
+		greet: function(data, cb) {
 			if (!data.name) return cb(new Error('No name was provided'));
 
 			cb(null, 'Hello, ' + data.name + '!');
