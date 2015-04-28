@@ -1,8 +1,5 @@
-import sys
-from optional_django import six
-from requests.exceptions import ConnectionError as RequestsConnectionError, ReadTimeout
-from .conf import settings, Verbosity
-from .exceptions import FunctionError, UnexpectedResponse, ConnectionError, FunctionTimeout
+from .conf import settings
+from .verbosity import PROCESS_START, PROCESS_STOP
 from .base_server import BaseServer
 
 
@@ -33,7 +30,7 @@ class JSHost(BaseServer):
 
         self.config = host['config']
 
-        if host['started'] and settings.VERBOSITY >= Verbosity.PROCESS_START:
+        if host['started'] and settings.VERBOSITY >= PROCESS_START:
             print('Started {}'.format(self.get_name()))
 
     def stop(self, timeout=None, stop_manager_if_last=None):
@@ -42,7 +39,7 @@ class JSHost(BaseServer):
 
         stopped = self.manager.stop_host(self.get_path_to_config_file(), stop_if_last=stop_manager_if_last)
 
-        if stopped and settings.VERBOSITY >= Verbosity.PROCESS_STOP:
+        if stopped and settings.VERBOSITY >= PROCESS_STOP:
             if timeout:
                 print(
                     '{name} will stop in {seconds} seconds'.format(
@@ -57,53 +54,3 @@ class JSHost(BaseServer):
         self.stop(stop_manager_if_last=False)
         self.start()
         self.connect()
-
-    def call_function(self, function, data=None, key=None, timeout=None):
-        if not self.has_connected:
-            raise ConnectionError('{} has not connected'.format(self.get_name()))
-
-        params = {}
-        if key:
-            params['key'] = key
-
-        if settings.VERBOSITY >= Verbosity.FUNCTION_CALL:
-            print(
-                'Calling function "{}" with data {}{}'.format(
-                    function,
-                    data,
-                    ' and key "{}"'.format(key) if key else ''
-                )
-            )
-
-        try:
-            res = self.send_request(
-                'function/' + function,
-                params=params,
-                headers={'content-type': 'application/json'},
-                post=True,
-                data=data,
-                timeout=timeout,
-            )
-        except RequestsConnectionError as e:
-            raise six.reraise(ConnectionError, ConnectionError(*e.args), sys.exc_info()[2])
-        except ReadTimeout as e:
-            raise six.reraise(FunctionTimeout, FunctionTimeout(*e.args), sys.exc_info()[2])
-
-        if res.status_code == 500:
-            raise FunctionError(
-                '{function}: {res_text}'.format(
-                    function=function,
-                    res_text=res.text,
-                )
-            )
-
-        if res.status_code != 200:
-            raise UnexpectedResponse(
-                'Called function "{function}". {res_code}: {res_text}'.format(
-                    function=function,
-                    res_code=res.status_code,
-                    res_text=res.text,
-                )
-            )
-
-        return res

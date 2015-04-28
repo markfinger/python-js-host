@@ -2,7 +2,8 @@ import subprocess
 import json
 import atexit
 from js_host.js_host import JSHost
-from js_host.conf import settings, Verbosity
+from js_host.conf import settings
+from js_host.verbosity import VERBOSE
 
 
 def start_host_process(host, port_override=None):
@@ -41,7 +42,7 @@ def start_host_process(host, port_override=None):
             'Unexpected output {}. Expected {}'.format(actual, expected)
         )
 
-    if settings.VERBOSITY == Verbosity.ALL:
+    if settings.VERBOSITY == VERBOSE:
         print('Started {}'.format(host.get_name()))
 
     atexit.register(stop_host_process, host=host, process=process)
@@ -56,5 +57,5 @@ def stop_host_process(host, process):
 
     if host.is_running():
         process.kill()
-        if settings.VERBOSITY == Verbosity.ALL:
+        if settings.VERBOSITY == VERBOSE:
             print('Stopped {}'.format(host.get_name()))

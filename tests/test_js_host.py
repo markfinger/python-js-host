@@ -1,6 +1,7 @@
 import json
 from js_host.exceptions import ConnectionError
 from js_host.js_host import JSHost
+from requests.exceptions import ConnectionError as RequestsConnectionError
 from .base_js_host_tests import BaseJSHostTests
 from .utils import start_host_process, stop_host_process
 
@@ -46,14 +47,19 @@ class TestJSHost(BaseJSHostTests):
             host.get_comparable_config(host.config)
         )
 
-        res = host.call_function('echo', data=json.dumps({'echo': 'foo'}))
+        res = host.send_request(
+            'function/echo',
+            data=json.dumps({'echo': 'foo'}),
+            post=True,
+            headers={'content-type': 'application/json'},
+        )
         self.assertEqual(res.text, 'foo')
 
         stop_host_process(host, process)
 
         self.assertFalse(host.is_running())
 
-        self.assertRaises(ConnectionError, host.call_function, 'error')
+        self.assertRaises(RequestsConnectionError, host.send_request, 'config')
         
     def test_raises_on_start_or_stop_calls(self):
         self.assertRaises(NotImplementedError, self.host.start)

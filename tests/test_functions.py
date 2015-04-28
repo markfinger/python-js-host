@@ -1,7 +1,7 @@
 import json
 import os
 import unittest
-from js_host.exceptions import ConfigError, FunctionError
+from js_host.exceptions import ConfigError, FunctionError, FunctionTimeout
 from js_host.function import Function
 from js_host.conf import settings
 from js_host.js_host import JSHost
@@ -24,7 +24,7 @@ class TestFunctions(unittest.TestCase):
 
         self.assertEqual(function.name, 'foo')
         self.assertEqual(function.host, None)
-        self.assertEqual(function.cacheable, True)
+        self.assertEqual(function.timeout, None)
 
     def test_name_is_required(self):
         self.assertRaises(ConfigError, Function)
@@ -56,7 +56,7 @@ class TestFunctions(unittest.TestCase):
 
     def test_generate_cache_key(self):
         self.assertEqual(
-            self.echo.generate_cache_key('foo', None),
+            self.echo.generate_key('foo', None),
             '0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33',
         )
 
@@ -67,33 +67,13 @@ class TestFunctions(unittest.TestCase):
         )
 
     def test_is_cacheable(self):
-        _CACHE = settings.CACHE
+        default = Function('echo')
+        uncacheable = Function('uncacheable')
+        cacheable = Function('cacheable')
 
-        settings._unlock()
-        settings.CACHE = True
-
-        class Uncacheable(Function):
-            name = 'echo'
-            cacheable = False
-        uncacheable = Uncacheable()
-
+        self.assertFalse(default.is_cacheable())
         self.assertFalse(uncacheable.is_cacheable())
-
-        uncacheable.cacheable = True
-        self.assertTrue(uncacheable.is_cacheable())
-
-        uncacheable.config['cache'] = False
-        self.assertFalse(uncacheable.is_cacheable())
-
-        uncacheable.config['cache'] = True
-        self.assertTrue(uncacheable.is_cacheable())
-
-        settings.CACHE = False
-        self.assertFalse(uncacheable.is_cacheable())
-
-        # Revert the setting
-        settings.CACHE = _CACHE
-        settings._lock()
+        self.assertTrue(cacheable.is_cacheable())
 
     def test_send_request(self):
         self.assertEqual(self.echo.send_request(echo='test').text, 'test')
@@ -118,3 +98,18 @@ class TestFunctions(unittest.TestCase):
         self.assertRaises(FunctionError, self.echo.call)
         self.assertRaises(FunctionError, self.echo.call, _echo='test')
         self.assertRaises(FunctionError, self.echo.call, foo='test')
+
+        try:
+            self.error.call()
+            raise Exception('A FunctionError should have been raised before this line')
+        except FunctionError as e:
+            self.assertIn('Hello from error function', str(e))
+
+    def test_can_raise_timeouts(self):
+        async_echo = Function('async_echo')
+        async_echo.timeout = 0.2
+
+        self.assertRaises(
+            FunctionTimeout,
+            async_echo.call,
+        )

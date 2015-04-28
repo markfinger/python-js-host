@@ -3,7 +3,8 @@ import time
 import subprocess
 import json
 from .base_server import BaseServer
-from .conf import settings, Verbosity
+from .conf import settings
+from .verbosity import PROCESS_START, PROCESS_STOP
 from .exceptions import ErrorStartingProcess, UnexpectedResponse
 
 
@@ -25,7 +26,7 @@ class JSHostManager(BaseServer):
         if not self.is_running():
             raise ErrorStartingProcess('Failed to start manager')
 
-        if settings.VERBOSITY >= Verbosity.PROCESS_START:
+        if settings.VERBOSITY >= PROCESS_START:
             print('Started {}'.format(self.get_name()))
 
     def stop(self):
@@ -40,7 +41,7 @@ class JSHostManager(BaseServer):
                     )
                 )
 
-            if settings.VERBOSITY >= Verbosity.PROCESS_STOP:
+            if settings.VERBOSITY >= PROCESS_STOP:
                 print('Stopped {}'.format(self.get_name()))
 
             # The request will end just before the process shuts down, so there is a tiny

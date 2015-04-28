@@ -1,22 +1,8 @@
 import os
 from optional_django import conf
+from .verbosity import PROCESS_START
 
 
-class Verbosity(object):
-    SILENT = 0
-    # Output when connections are opened
-    CONNECT = 100
-    # Output when managers and managed hosts are started
-    PROCESS_START = 200
-    # Output when managers and managed hosts are sent `stop` signals
-    PROCESS_STOP = 300
-    # Output when functions are called
-    FUNCTION_CALL = 400
-    # Output everything
-    ALL = 500
-
-
-# TODO: move the internal docs into the README
 class Conf(conf.Conf):
     django_namespace = 'JS_HOST'
 
@@ -27,39 +13,26 @@ class Conf(conf.Conf):
     SOURCE_ROOT = None
 
     # A path to the binary used to control hosts and managers.
-    # If the path is relative, it is appended to the SOURCE_ROOT setting
     BIN_PATH = os.path.join('node_modules', '.bin', 'js-host')
 
-    # A path to the default config file used for hosts and managers.
-    # If the path is relative, it is appended to the SOURCE_ROOT setting.
+    # A path to a default config file used for hosts and managers.
     CONFIG_FILE = 'host.config.js'
 
-    # If True, the host will cache the output of the functions until it expires.
-    # This can be overridden on functions by adding `cachable = False` to the
-    # subclass of `Function`, or by adding `cache: false` to the config file's
-    # object for that particular function
-    CACHE = False
-
-    # By default this will print to the terminal whenever processes are started or
-    # connected to. If you want to suppress all output, set it to
-    # `js_host.conf.Verbosity.SILENT`
-    VERBOSITY = Verbosity.PROCESS_START
-
-    FUNCTION_TIMEOUT = 10.0
+    # How long functions will wait for response before raising errors
+    FUNCTION_TIMEOUT = 10.0  # 10 seconds
 
     # Indicates that a manager should be used to spawn host instances
     # DO *NOT* USE THE MANAGER IN PRODUCTION
     USE_MANAGER = False
 
-    # When the python process exits, the manager is informed to stop the host once this
-    # timeout has expired. If the python process is only restarting, the manager will
-    # cancel the timeout once it has reconnected. If the python process is shutting down
-    # for good, the manager will stop the host's process shortly.
+    # How long should managed hosts run for, once the python process has stopped
     ON_EXIT_STOP_MANAGED_HOSTS_AFTER = 10 * 1000  # 10 seconds
 
-    # Once the js host has been configured, attempt to connect. This enables any
-    # config or connection errors to be raised during startup, rather than runtime
+    # If True, attempt to connect once js_host has been configured
     CONNECT_ONCE_CONFIGURED = True
+
+    # How verbose processes should be about their actions
+    VERBOSITY = PROCESS_START
 
     def configure(self, **kwargs):
         super(Conf, self).configure(**kwargs)

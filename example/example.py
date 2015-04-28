@@ -1,16 +1,14 @@
 import os
-from js_host.conf import settings, Verbosity
+import js_host.conf
+from js_host.verbosity import PROCESS_STOP
 from js_host.function import Function
-
-DEBUG = True
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-settings.configure(
-    CACHE=not DEBUG,
-    USE_MANAGER=DEBUG,
+js_host.conf.settings.configure(
+    USE_MANAGER=True,
     SOURCE_ROOT=BASE_DIR,
-    VERBOSITY=Verbosity.PROCESS_STOP,
+    VERBOSITY=PROCESS_STOP,
 )
 
 greet = Function('greet')

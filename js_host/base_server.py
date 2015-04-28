@@ -4,7 +4,8 @@ import subprocess
 import requests
 from distutils.spawn import find_executable
 from requests.exceptions import ConnectionError as RequestsConnectionError
-from .conf import settings, Verbosity
+from .conf import settings
+from .verbosity import VERBOSE, CONNECT
 from .exceptions import ConfigError, ConnectionError, UnexpectedResponse
 
 
@@ -88,7 +89,7 @@ class BaseServer(object):
         return os.path.join(self.source_root, settings.BIN_PATH)
 
     def read_config_from_file(self, config_file):
-        if settings.VERBOSITY >= Verbosity.ALL:
+        if settings.VERBOSITY >= VERBOSE:
             print('Reading config file {}'.format(config_file))
 
         process = subprocess.Popen(
@@ -201,7 +202,7 @@ class BaseServer(object):
                 )
             )
 
-        if settings.VERBOSITY >= Verbosity.CONNECT:
+        if settings.VERBOSITY >= CONNECT:
             print('Connected to {}'.format(self.get_name()))
 
         self.has_connected = True
