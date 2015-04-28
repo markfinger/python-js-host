@@ -67,10 +67,10 @@ Create a file named `hello_world.py` and insert the following
 
 ```python
 import os
-from js_host.conf import settings as js_host_settings
+import js_host.conf
 from js_host.function import Function
 
-js_host_settings.configure(
+js_host.conf.settings.configure(
   SOURCE_ROOT=os.path.dirname(os.path.abspath(__file__)),
   USE_MANAGER=True,
 )
@@ -216,22 +216,23 @@ environment.
 
 Managers solve the following problems:
 
-- Many of the typical JS functions involve processes which have an initial overhead,
-  but are performant after the first run, compilers are the usual example. If a host
-  runs as a child process of the python process, it will have to restart whenever the
-  python process does. Given the frequent restarts of python development servers,
-  the issue of a compiler's inital overhead becomes painful very quickly.
+- Many of the typical use cases for JS functions involve processes which have an
+  initial overhead, but are performant after the first run, compilers are the usual
+  example. If a JS host runs as a child process of the python process, it will have
+  to restart whenever the python process does. Given the frequent restarts of python
+  development servers, the issue of a compiler's inital overhead becomes painful very
+  quickly.
 - If you run the host process as a detached child, the lack of restarts will improve 
   performance, but it introduces additional overheads as you need to ensure that the 
-  process is inevitably stopped. The manager does this for you automatically - once 
+  process is inevitably stopped. The manager does this for you automatically. Once
   your python process has stopped running, the manager will wait for a small time 
   period and then stop the JS host as well. Once the manager is no longer responsible 
   for any hosts, it stops its own process as well.
 - Using a manager removes the need for staff and other developers to run yet another command 
   when starting or running a project. Removing unwanted overhead with tools that 'just work' 
-  lets everyone focus on making cool stuff.
+  lets everyone focus on making stuff.
 
-Be aware that managers have some identified issues:
+Be aware that `JSHostManagers` have some identified issues:
 
 - Managed hosts can persist after their config file has changed. To force a restart of a 
   managed host, call `restart` on a `JSHost` instance. For example:
@@ -245,59 +246,121 @@ Be aware that managers have some identified issues:
   to introspect an environment. [This issue is tracked in #3](markfinger/python-js-host#3)
 
 If you wish to avoid these issues, you are recommended to set the `USE_MANGER` setting
-to `False`, and start hosts manually.
+to `False`, and [start hosts manually](#usage-in-production).
 
 
 Settings
 --------
 
-```python
-PATH_TO_NODE = 'node'
+### SOURCE_ROOT
 
-# An absolute path to the directory which contains your node_modules directory
-SOURCE_ROOT = None
+An absolute path to the directory which contains your node_modules directory.
 
-# A path to the binary used to control hosts and managers.
-# If the path is relative, it is appended to the SOURCE_ROOT setting
-BIN_PATH = os.path.join('node_modules', '.bin', 'js-host')
+This setting must be defined to start either a host or manager.
 
-# A path to the default config file used for hosts and managers.
-# If the path is relative, it is appended to the SOURCE_ROOT setting.
-CONFIG_FILE = 'host.config.js'
+Default: `None`
 
-# If True, the host will cache the output of the functions until it expires.
-# This can be overridden on functions by adding `cachable = False` to the
-# subclass of `Function`, or by adding `cache: false` to the config file's
-# object for that particular function
-CACHE = False
 
-# By default this will print to the terminal whenever processes are started or
-# connected to. If you want to suppress all output, set it to
-# `js_host.conf.Verbosity.SILENT`
-VERBOSITY = Verbosity.PROCESS_START
+### CONFIG_FILE
 
-FUNCTION_TIMEOUT = 10.0
+A path to the default config file used for hosts and managers.
 
-# Indicates that a manager should be used to spawn host instances
-# DO *NOT* USE THE MANAGER IN PRODUCTION
-USE_MANAGER = False
+If the path is relative, it is appended to `SOURCE_ROOT`.
 
-# When the python process exits, the manager is informed to stop the host once this
-# timeout has expired. If the python process is only restarting, the manager will
-# cancel the timeout once it has reconnected. If the python process is shutting down
-# for good, the manager will stop the host's process shortly.
-ON_EXIT_STOP_MANAGED_HOSTS_AFTER = 10 * 1000  # 10 seconds
+Default: `'host.config.js'`
 
-# Once the js host has been configured, attempt to connect. This enables any
-# config or connection errors to be raised during startup, rather than runtime
-CONNECT_ONCE_CONFIGURED = True
-```
+
+### USE_MANAGER
+
+Indicates that a manager should be used to spawn host instances.
+
+DO *NOT* USE THE MANAGER IN PRODUCTION.
+
+Default: `False`
+
+
+### PATH_TO_NODE
+
+A path to a node or io.js binary
+
+Default: `'node'`
+
+
+### BIN_PATH
+
+A path to the binary used to control hosts and managers.
+
+If the path is relative, it is appended to the SOURCE_ROOT setting
+
+Default: `os.path.join('node_modules', '.bin', 'js-host')`
+
+
+### FUNCTION_TIMEOUT
+
+Indicates how many seconds `Function` objects will wait for a response before
+raising exceptions.
+
+Default: `10.0`
+
+
+### ON_EXIT_STOP_MANAGED_HOSTS_AFTER
+
+Indicates how many milliseconds the manager will wait before stopping hosts.
+
+When the python process exits, the manager is informed to stop the host once this
+timeout has expired. If the python process is only restarting, the manager will
+cancel the timeout once it has reconnected. If the python process is shutting down
+for good, the manager will stop the host's process shortly.
+
+Default:  `10 * 1000  # 10 seconds`
+
+
+### VERBOSITY
+
+Indicates how much information the host should print the terminal. By default this
+will print to the terminal whenever processes are started or connected to.
+
+If you want to suppress all output, set it to `js_host.verbosity.SILENT`.
+
+Default: `js_host.verbosity.PROCESS_START`
+
+
+### CONNECT_ONCE_CONFIGURED
+
+Indicates that once `js_host` has been configured, it should attempt to connect to a
+host.
+
+This setting enables any config or connection errors to be raised during startup,
+rather than during runtime. It also enables connections to managed hosts to be
+preserved between restarts of your python process.
+
+Default: `True`
+
 
 Django integration
 ------------------
 
-settings namespace
-INSTALLED_APPS to ensure the host starts/connects on startup
+Due to Django's quirks, there are a few helpers provided to integrate this library
+into a django project.
+
+Rather than defining settings by using `js_host.conf.settings.configure(...)`, you
+should place them into a dictionary in your django settings files and add `js_host` to your
+`INSTALLED_APPS` setting.
+
+```
+INSTALLED_APPS += (
+  'js_host',
+)
+
+JS_HOST = {
+	'SOURCE_ROOT': '/abs/path/to/your/project',
+	'USE_MANAGER': DEBUG,
+}
+```
+
+Once django has initialized, it will import `js_host.models` and start the process of
+fetching your settings and initializing a connection to a host.
+
 
 Usage in development
 --------------------
