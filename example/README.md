@@ -4,19 +4,11 @@ Example
 An example of how to integrate some basic JavaScript services into a Python application.
 
 
-Installation
-------------
+Running the example
+-------------------
 
 ```bash
-mkvirtualenv service-host
-pip install -r ../requirements.txt
+pip install js-host
 npm install
-```
-
-
-Run the example
----------------
-
-```bash
 python example.py
 ```

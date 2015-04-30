@@ -38,23 +38,18 @@ class TestFunctions(unittest.TestCase):
     def test_get_name(self):
         self.assertEqual(self.echo.get_name(), self.echo.name)
 
-    def test_get_config_validates_the_host_config(self):
-        class Test(Function):
-            name = 'test'
-        function = Test()
+    def test_functions_validate_the_hosts_config(self):
+        function = Function('test')
 
         function.host = JSHost(config_file=no_functions_host_config_file)
 
-        self.assertIsInstance(function.host.config['functions'], list)
-        self.assertEqual(len(function.host.config['functions']), 0)
+        self.assertEqual(function.host.get_config()['functions'], [])
 
-        self.assertRaises(ConfigError, function.get_config)
+        self.assertRaises(ConfigError, function.send_request)
 
-        function.host.config['functions'].append({'name': 'test', 'cache': False})
+        function.host.get_config()['functions'].append({'name': 'test'})
 
-        self.assertEqual(function.get_config(), {'name': 'test', 'cache': False})
-
-    def test_generate_cache_key(self):
+    def test_generate_key(self):
         self.assertEqual(
             self.echo.generate_key('foo', None),
             '0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33',
@@ -65,15 +60,6 @@ class TestFunctions(unittest.TestCase):
             self.echo.serialize_data({'foo': 'bar', 'woz': [1, 2, 3]}),
             json.dumps({'foo': 'bar', 'woz': [1, 2, 3]}),
         )
-
-    def test_is_cacheable(self):
-        default = Function('echo')
-        uncacheable = Function('uncacheable')
-        cacheable = Function('cacheable')
-
-        self.assertFalse(default.is_cacheable())
-        self.assertFalse(uncacheable.is_cacheable())
-        self.assertTrue(cacheable.is_cacheable())
 
     def test_send_request(self):
         self.assertEqual(self.echo.send_request(echo='test').text, 'test')

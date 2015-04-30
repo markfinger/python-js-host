@@ -21,18 +21,6 @@ module.exports = {
 				}
 				done(null, data.echo);
 			}, 500);
-		},
-		cacheable: {
-			handler: function(data, done) {
-				done(null, 'success');
-			},
-			cache: true
-		},
-		uncacheable: {
-			handler: function(data, done) {
-				done(null, 'success');
-			},
-			cache: false
 		}
 	}
 };

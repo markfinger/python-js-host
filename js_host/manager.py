@@ -9,7 +9,8 @@ from .exceptions import ErrorStartingProcess, UnexpectedResponse
 
 
 class JSHostManager(BaseServer):
-    type_name = 'Manager'
+    expected_type_name = 'Manager'
+    read_config_file_params = ('--manager',)
 
     def start(self):
         process = subprocess.Popen(
@@ -31,11 +32,11 @@ class JSHostManager(BaseServer):
 
     def stop(self):
         if self.is_running():
-            res = self.send_request('shutdown', post=True)
+            res = self.send_request('manager/stop', post=True)
 
             if res.status_code != 200:
                 raise UnexpectedResponse(
-                    'Attempted to shutdown host. {res_code}: {res_text}'.format(
+                    'Attempted to stop host. {res_code}: {res_text}'.format(
                         res_code=res.status_code,
                         res_text=res.text,
                     )
@@ -44,9 +45,9 @@ class JSHostManager(BaseServer):
             if settings.VERBOSITY >= PROCESS_STOP:
                 print('Stopped {}'.format(self.get_name()))
 
-            # The request will end just before the process shuts down, so there is a tiny
-            # possibility of a race condition. We delay as a precaution so that we can be
-            # reasonably confident of the system's state.
+            # The request will end just before the process stop, so there is a tiny
+            # possibility of a race condition. We delay as a precaution so that we
+            # can be reasonably confident of the system's state.
             time.sleep(0.05)
 
     def restart(self):
@@ -62,7 +63,7 @@ class JSHostManager(BaseServer):
         host is running, the manager returns information so that the host knows
         where to send requests
         """
-        res = self.send_request('start', params={'config': config_file}, post=True)
+        res = self.send_request('host/start', params={'config': config_file}, post=True)
 
         if res.status_code != 200:
             raise UnexpectedResponse(
@@ -74,7 +75,7 @@ class JSHostManager(BaseServer):
 
         host = res.json()
 
-        host['config'] = json.loads(host['output'])
+        host['status'] = json.loads(host['output'])
 
         # When the python process exits, we ask the manager to stop the
         # host after a timeout. If the python process is merely restarting,
@@ -101,6 +102,8 @@ class JSHostManager(BaseServer):
         the last one being managed.
         """
 
+        import pdb; pdb.set_trace()
+
         if not self.is_running():
             return False
 
@@ -117,7 +120,7 @@ class JSHostManager(BaseServer):
         if timeout:
             params['timeout'] = timeout
 
-        res = self.send_request('stop', params=params, post=True)
+        res = self.send_request('host/stop', params=params, post=True)
 
         if res.status_code != 200:
             raise UnexpectedResponse(

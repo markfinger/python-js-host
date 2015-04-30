@@ -39,32 +39,40 @@ class Function(object):
         return res.text
 
     def send_request(self, **kwargs):
-        serialized_data = self.serialize_data(kwargs)
+        host = self.get_host()
 
-        params = {}
+        configured_functions = host.get_config().get('functions', None)
 
-        key = None
-        if self.is_cacheable():
-            key = self.generate_key(serialized_data, kwargs)
-            params['key'] = key
+        if not configured_functions:
+            raise ConfigError(
+                '{} does not have any functions configured'.format(host.get_name())
+            )
 
-        if settings.VERBOSITY >= FUNCTION_CALL:
-            print(
-                'Calling function "{}" with data {}{}'.format(
+        if self.name not in configured_functions:
+            raise ConfigError(
+                '{} is not configured to use function {}'.format(
+                    host.get_name(),
                     self.name,
-                    serialized_data,
-                    ' and key "{}"'.format(key) if key else ''
                 )
             )
 
-        host = self.get_host()
-
+        serialized_data = self.serialize_data(kwargs)
+        key = self.generate_key(serialized_data, kwargs)
         timeout = self.get_timeout()
+
+        if settings.VERBOSITY >= FUNCTION_CALL:
+            print(
+                'Calling function "{}" with key {} and data {}'.format(
+                    self.name,
+                    key,
+                    serialized_data,
+                )
+            )
 
         try:
             res = host.send_request(
                 'function/{}'.format(self.name),
-                params=params,
+                params={'key': key},
                 headers={'content-type': 'application/json'},
                 post=True,
                 data=serialized_data,
@@ -108,53 +116,8 @@ class Function(object):
     def get_name(self):
         return self.name
 
-    def get_config(self):
-        if not self.config:
-            name = self.get_name()
-
-            host = self.get_host()
-            host_config = host.get_config()
-
-            if 'functions' not in host_config:
-                raise ConfigError('Host config is missing a `functions` property')
-
-            config = [obj for obj in host_config['functions'] if 'name' in obj and obj['name'] == name]
-
-            if len(config) == 0:
-                raise ConfigError(
-                    '{host_name} has no configured function matching "{name}"'.format(
-                        host_name=host.get_name(),
-                        name=name,
-                    )
-                )
-
-            if len(config) > 1:
-                raise ConfigError(
-                    '{host_name} has multiple configured functions matching {name}'.format(
-                        host_name=host.get_name(),
-                        name=name,
-                    )
-                )
-
-            config = config[0]
-
-            if not isinstance(config, dict):
-                raise ConfigError(
-                    'Function "{name}" cannot determine a config object from {config_file}'.format(
-                        name=name,
-                        config_file=host.config_file,
-                    )
-                )
-
-            self.config = config
-
-        return self.config
-
     def serialize_data(self, data):
         return json.dumps(data, cls=JSONEncoder)
-
-    def is_cacheable(self):
-        return self.get_config().get('cache', False)
 
     def generate_key(self, serialized_data, data):
         serialized_data = serialized_data.encode('utf-8')

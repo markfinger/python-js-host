@@ -312,7 +312,7 @@ timeout has expired. If the python process is only restarting, the manager will
 cancel the timeout once it has reconnected. If the python process is shutting down
 for good, the manager will stop the host's process shortly.
 
-Default:  `10 * 1000  # 10 seconds`
+Default:  `5 * 1000  # 5 seconds`
 
 
 ### VERBOSITY

@@ -28,18 +28,17 @@ class TestManager(unittest.TestCase):
         self.assertIsInstance(self.manager, BaseServer)
 
     def test_is_instantiated_properly(self):
-        self.assertEqual(self.manager.type_name, 'Manager')
+        self.assertEqual(self.manager.expected_type_name, 'Manager')
         self.assertEqual(self.manager.config_file, manager_config_file)
         self.assertEqual(self.manager.path_to_node, settings.PATH_TO_NODE)
         self.assertEqual(self.manager.source_root, settings.SOURCE_ROOT)
-        self.assertIsNotNone(self.manager.config)
-        self.assertIsInstance(self.manager.config, dict)
+        self.assertIsNotNone(self.manager.status)
+        self.assertIsInstance(self.manager.status, dict)
 
     def test_can_read_in_config(self):
-        self.assertEqual(self.manager.get_config(), self.manager.config)
-        self.assertEqual(self.manager.config['address'], '127.0.0.1')
-        self.assertEqual(self.manager.config['port'], 45678)
-        self.assertIsNone(self.manager.config['functions'])
+        self.assertEqual(self.manager.get_config(), self.manager.status['config'])
+        self.assertEqual(self.manager.get_config()['address'], '127.0.0.1')
+        self.assertEqual(self.manager.get_config()['port'], 45678)
 
     def test_can_produce_url_to_itself(self):
         self.assertEqual(self.manager.get_url(), 'http://127.0.0.1:45678')
@@ -49,16 +48,16 @@ class TestManager(unittest.TestCase):
         self.assertTrue(self.manager.is_running())
 
     def test_accepts_requests(self):
-        res = self.manager.send_request('config')
+        res = self.manager.send_request('status')
         self.assertEqual(
-            self.manager.get_comparable_config(json.loads(res.text)),
-            self.manager.get_comparable_config(self.manager.config)
+            json.loads(res.text),
+            self.manager.get_status(),
         )
 
     def test_manager_lifecycle(self):
         manager = JSHostManager(config_file=manager_lifecycle_config_file)
 
-        self.assertEqual(manager.config['port'], 34567)
+        self.assertEqual(manager.get_config()['port'], 34567)
 
         self.assertRaises(ConnectionError, manager.connect)
 
@@ -94,7 +93,7 @@ class TestManager(unittest.TestCase):
         host2.start()
         host2.connect()
 
-        self.assertNotEqual(host1.config['port'], host2.config['port'])
+        self.assertNotEqual(host1.get_config()['port'], host2.get_config()['port'])
 
         self.assertTrue(host2.is_running())
 

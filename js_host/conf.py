@@ -26,7 +26,7 @@ class Conf(conf.Conf):
     USE_MANAGER = False
 
     # How long should managed hosts run for, once the python process has stopped
-    ON_EXIT_STOP_MANAGED_HOSTS_AFTER = 10 * 1000  # 10 seconds
+    ON_EXIT_STOP_MANAGED_HOSTS_AFTER = 5 * 1000  # 5 seconds
 
     # If True, attempt to connect once js_host has been configured
     CONNECT_ONCE_CONFIGURED = True

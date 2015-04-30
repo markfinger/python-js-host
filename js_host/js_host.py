@@ -1,10 +1,11 @@
+import copy
 from .conf import settings
 from .verbosity import PROCESS_START, PROCESS_STOP
 from .base_server import BaseServer
 
 
 class JSHost(BaseServer):
-    type_name = 'Host'
+    expected_type_name = 'Host'
     manager = None
 
     def __init__(self, *args, **kwargs):
@@ -14,11 +15,13 @@ class JSHost(BaseServer):
             if 'config_file' in kwargs:
                 self.config_file = kwargs.pop('config_file')
             else:
-                # Reuse the manager's config to avoid the overhead of reading the file
-                # again. Once the process has started, the real config is read in from
-                # the process once it starts up
+                # Reuse the manager's status to avoid the overhead of reading the config
+                # file again. Once the manager has spawned the host, it will provide the
+                # real details
                 self.config_file = self.manager.get_path_to_config_file()
-                self.config = self.manager.get_config()
+                status = copy.deepcopy(self.manager.get_status())
+                status['type'] = self.expected_type_name
+                self.status = status
 
         super(JSHost, self).__init__(*args, **kwargs)
 
@@ -28,7 +31,7 @@ class JSHost(BaseServer):
 
         host = self.manager.start_host(self.get_path_to_config_file())
 
-        self.config = host['config']
+        self.status = host['status']
 
         if host['started'] and settings.VERBOSITY >= PROCESS_START:
             print('Started {}'.format(self.get_name()))

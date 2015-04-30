@@ -19,11 +19,11 @@ class BaseJSHostTests(unittest.TestCase):
         self.assertIsInstance(self.host, BaseServer)
 
     def test_is_instantiated_properly(self):
-        self.assertEqual(self.host.type_name, 'Host')
+        self.assertEqual(self.host.expected_type_name, 'Host')
         self.assertEqual(self.host.path_to_node, settings.PATH_TO_NODE)
         self.assertEqual(self.host.source_root, settings.SOURCE_ROOT)
-        self.assertIsNotNone(self.host.config)
-        self.assertIsInstance(self.host.config, dict)
+        self.assertIsNotNone(self.host.status)
+        self.assertIsInstance(self.host.status, dict)
         self.assertEqual(self.host.config_file, self.base_js_host_config_file)
 
     def test_is_running(self):

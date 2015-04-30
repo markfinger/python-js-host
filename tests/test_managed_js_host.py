@@ -28,34 +28,33 @@ class TestManagedJSHost(BaseJSHostTests):
         cls.manager.stop()
 
     def test_can_read_in_config(self):
-        self.assertEqual(self.host.get_config(), self.host.config)
-        self.assertEqual(self.host.config['address'], '127.0.0.1')
-        self.assertIsNotNone(self.host.config['functions'])
-        self.assertIsInstance(self.host.config, dict)
+        self.assertEqual(self.host.get_config()['address'], '127.0.0.1')
+        self.assertIsNotNone(self.host.get_config()['functions'])
+        self.assertIsInstance(self.host.get_config(), dict)
 
         # Ensure the manager runs on the designated port and
         # the host runs on a different port
-        self.assertEqual(self.manager.config['port'], 56789)
-        self.assertNotEqual(self.host.config['port'], 56789)
+        self.assertEqual(self.host.manager.get_config()['port'], 56789)
+        self.assertNotEqual(self.host.get_config()['port'], 56789)
 
     def test_can_produce_url_to_itself(self):
-        self.assertNotEqual(self.host.config['port'], 56789)
+        self.assertNotEqual(self.host.get_config()['port'], 56789)
         # The host is running on a random port
-        port = self.host.config['port']
+        port = self.host.get_config()['port']
         self.assertEqual(self.host.get_url(), 'http://127.0.0.1:{}'.format(port))
         self.assertEqual(self.host.get_url('some/endpoint'), 'http://127.0.0.1:{}/some/endpoint'.format(port))
 
     def test_accepts_requests(self):
-        res = self.host.send_request('config')
+        res = self.host.send_request('status')
         self.assertEqual(
-            self.host.get_comparable_config(json.loads(res.text)),
-            self.host.get_comparable_config(self.host.config)
+            json.loads(res.text),
+            self.host.get_status()
         )
 
     def test_managed_host_lifecycle(self):
         manager = JSHostManager(config_file=managed_host_lifecycle_config_file)
 
-        self.assertEqual(manager.config['port'], 23456)
+        self.assertEqual(manager.get_config()['port'], 23456)
 
         manager.start()
         manager.connect()
@@ -66,7 +65,7 @@ class TestManagedJSHost(BaseJSHostTests):
 
         # Should not be able to connect, even though a manager is running
         # on the expected port
-        self.assertEqual(host.config['port'], 23456)
+        self.assertEqual(host.get_config()['port'], 23456)
         self.assertRaises(ConnectionError, host.connect)
         self.assertFalse(host.is_running())
 
@@ -83,7 +82,7 @@ class TestManagedJSHost(BaseJSHostTests):
         manager.stop()
 
     def test_can_restart(self):
-        port = self.host.config['port']
+        port = self.host.get_config()['port']
         self.host.restart()
         self.assertTrue(self.host.is_running())
-        self.assertNotEqual(port, self.host.config['port'])
+        self.assertNotEqual(port, self.host.get_config()['port'])

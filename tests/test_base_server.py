@@ -13,33 +13,35 @@ class TestBaseServer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         class BaseServerSubclass(BaseServer):
-            type_name = 'Test'
+            expected_type_name = 'Host'
 
         cls.BaseServerSubclass = BaseServerSubclass
 
         cls.server = cls.BaseServerSubclass(config_file=base_server_config_file)
 
     def test_is_instantiated_properly(self):
-        self.assertEqual(self.server.type_name, 'Test')
+        self.assertEqual(self.server.expected_type_name, 'Host')
         self.assertFalse(self.server.has_connected)
         self.assertEqual(self.server.config_file, base_server_config_file)
         self.assertEqual(self.server.path_to_node, settings.PATH_TO_NODE)
         self.assertEqual(self.server.source_root, settings.SOURCE_ROOT)
-        self.assertIsNotNone(self.server.config)
+        self.assertIsNotNone(self.server.status)
+        self.assertIsInstance(self.server.status, dict)
 
     def test_can_read_in_config(self):
-        base_server_config = self.server.read_config_from_file(base_server_config_file)
-        self.assertEqual(self.server.get_config(), base_server_config)
-        self.assertEqual(self.server.config['address'], '127.0.0.1')
-        self.assertEqual(self.server.config['port'], 9876)
-        self.assertEqual(self.server.config['someUnexpectedProp'], 'foo')
+        base_server_config = self.server.read_config_file(base_server_config_file)
+        self.assertEqual(self.server.get_status(), base_server_config)
+
+        self.assertEqual(self.server.get_config()['address'], '127.0.0.1')
+        self.assertEqual(self.server.get_config()['port'], 9876)
+        self.assertEqual(self.server.get_config()['someUnexpectedProp'], 'foo')
 
     def test_can_produce_url_to_itself(self):
         self.assertEqual(self.server.get_url(), 'http://127.0.0.1:9876')
         self.assertEqual(self.server.get_url('some/endpoint'), 'http://127.0.0.1:9876/some/endpoint')
 
-    def test_can_request_type_name_safely(self):
-        self.assertIsNone(self.server.request_type_name())
+    def test_can_request_status_safely(self):
+        self.assertIsNone(self.server.request_status())
 
     def test_can_check_if_running_safely(self):
         self.assertFalse(self.server.is_running())

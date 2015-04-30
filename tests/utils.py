@@ -28,18 +28,17 @@ def start_host_process(host, port_override=None):
     if not output.startswith('{'):
         raise Exception('Unexpected output from `{}`: {}'.format(' '.join(cmd), output))
 
-    config = json.loads(output)
+    status = json.loads(output)
 
     if port_override is not None:
         if port_override != 0:
-            assert config['port'] == port_override
-        host.config['port'] = config['port']
+            assert status['config']['port'] == port_override
+        host.get_config()['port'] = status['config']['port']
 
-    expected = host.get_comparable_config(host.config)
-    actual = host.get_comparable_config(config)
-    if actual != expected:
+    expected = host.get_status()
+    if status != expected:
         raise Exception(
-            'Unexpected output {}. Expected {}'.format(actual, expected)
+            'Unexpected output {}. Expected {}'.format(status, expected)
         )
 
     if settings.VERBOSITY == VERBOSE:

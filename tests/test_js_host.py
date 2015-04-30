@@ -21,9 +21,8 @@ class TestJSHost(BaseJSHostTests):
         stop_host_process(cls.host, cls.process)
 
     def test_can_read_in_config(self):
-        self.assertEqual(self.host.get_config(), self.host.config)
-        self.assertEqual(self.host.config['address'], '127.0.0.1')
-        self.assertEqual(self.host.config['port'], 56789)
+        self.assertEqual(self.host.get_config()['address'], '127.0.0.1')
+        self.assertEqual(self.host.get_config()['port'], 56789)
 
     def test_can_produce_url_to_itself(self):
         self.assertEqual(self.host.get_url(), 'http://127.0.0.1:56789')
@@ -32,19 +31,19 @@ class TestJSHost(BaseJSHostTests):
     def test_host_connection_lifecycle(self):
         host = JSHost(config_file=self.base_js_host_config_file)
 
-        self.assertEqual(host.config['port'], 56789)
+        self.assertEqual(host.get_config()['port'], 56789)
         process = start_host_process(host, port_override=0)
-        self.assertNotEqual(host.config['port'], 56789)
+        self.assertNotEqual(host.get_config()['port'], 56789)
 
         self.assertFalse(host.has_connected)
         host.connect()
         self.assertTrue(host.has_connected)
 
-        self.assertEqual(host.request_type_name(), 'Host')
+        self.assertEqual(host.get_type_name(), 'Host')
 
         self.assertEqual(
-            host.get_comparable_config(host.request_config()),
-            host.get_comparable_config(host.config)
+            host.get_status(),
+            host.request_status(),
         )
 
         res = host.send_request(

@@ -16,17 +16,15 @@ class BaseServer(object):
     config_file = None
 
     # Defined by subclasses
-    type_name = None
+    expected_type_name = None
+    read_config_file_params = ()
 
     # Generated at runtime
-    config = None
-    has_connected = False
+    status = None
 
-    # When connecting to hosts, we read their config in and ensure that it matches
-    # what we are expected. In some instances, certain config values will be mutated
-    # based on the params used to invoke a host, so we need to omit them when
-    # comparing configs
-    _ignorable_config_keys = ('outputOnListen',)
+    config = None
+    version = None
+    has_connected = False
 
     def __init__(self, config_file=None, source_root=None, path_to_node=None):
         if not self.config_file:
@@ -62,6 +60,10 @@ class BaseServer(object):
         if not os.path.exists(self.get_path_to_config_file()):
             raise ConfigError('Config file {} does not exist'.format(self.get_path_to_config_file()))
 
+        type_name = self.get_type_name()
+        if type_name != self.expected_type_name:
+            raise ConfigError('Expected type {} but found {}'.format(self.expected_type_name, type_name))
+
         # Validate the config file
         config = self.get_config()
         if config is None:
@@ -88,12 +90,12 @@ class BaseServer(object):
             return settings.BIN_PATH
         return os.path.join(self.source_root, settings.BIN_PATH)
 
-    def read_config_from_file(self, config_file):
+    def read_config_file(self, config_file):
         if settings.VERBOSITY >= VERBOSE:
             print('Reading config file {}'.format(config_file))
 
         process = subprocess.Popen(
-            (self.path_to_node, self.get_path_to_bin(), config_file, '--config',),
+            (self.path_to_node, self.get_path_to_bin(), config_file, '--config',) + self.read_config_file_params,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -108,10 +110,19 @@ class BaseServer(object):
 
         return json.loads(stdout)
 
+    def get_status(self):
+        if not self.status:
+            self.status = self.read_config_file(self.get_path_to_config_file())
+        return self.status
+
+    def get_version(self):
+        return self.get_status()['version']
+
+    def get_type_name(self):
+        return self.get_status()['type']
+
     def get_config(self):
-        if not self.config:
-            self.config = self.read_config_from_file(self.get_path_to_config_file())
-        return self.config
+        return self.get_status()['config']
 
     def get_url(self, endpoint=None):
         config = self.get_config()
@@ -142,31 +153,16 @@ class BaseServer(object):
 
         return func(url, **kwargs)
 
-    def request_type_name(self):
+    def request_status(self):
         try:
-            return self.send_request('type', unsafe=True).text
+            res = self.send_request('status', unsafe=True)
         except RequestsConnectionError:
-            pass
+            return
 
-    def request_config(self):
-        try:
-            res = self.send_request('config', unsafe=True)
-        except RequestsConnectionError:
-            raise ConnectionError('Cannot read config from {}'.format(self.get_name()))
-
-        if res.status_code != 200:
-            raise UnexpectedResponse(
-                'Expected {name} to return its config. Received {res_code}: {res_text}'.format(
-                    self.get_name(),
-                    res_code=res.status_code,
-                    res_text=res.text,
-                )
-            )
-
-        return res.json()
+        return json.loads(res.text)
 
     def is_running(self):
-        return self.request_type_name() == self.type_name
+        return self.get_status() == self.request_status()
 
     def start(self):
         raise NotImplementedError()
@@ -177,28 +173,18 @@ class BaseServer(object):
     def restart(self):
         raise NotImplementedError()
 
-    def get_comparable_config(self, config):
-        return {
-            key: config[key] for key in config.keys() if key not in self._ignorable_config_keys
-        }
-
     def connect(self):
         if not self.is_running():
             raise ConnectionError('Cannot connect to {}'.format(self.get_name()))
 
-        expected_config = self.get_comparable_config(self.get_config())
-        actual_config = self.get_comparable_config(self.request_config())
+        expected = self.get_status()
+        actual = self.request_status()
 
-        if expected_config != actual_config:
-            raise ConfigError(
-                (
-                    'The {type_name} at {url} is using a different config than expected. '
-                    'Expected {expected}, received {actual}.'
-                ).format(
-                    type_name=self.type_name,
-                    url=self.get_url(),
-                    expected=expected_config,
-                    actual=actual_config,
+        if actual != expected:
+            raise UnexpectedResponse(
+                'Cannot complete connection. Expected {expected}, received {actual}.'.format(
+                    expected=expected,
+                    actual=actual,
                 )
             )
 
