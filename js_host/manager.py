@@ -102,8 +102,6 @@ class JSHostManager(BaseServer):
         the last one being managed.
         """
 
-        import pdb; pdb.set_trace()
-
         if not self.is_running():
             return False
 
