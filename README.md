@@ -15,7 +15,7 @@ This python layer provides the bindings necessary to connect to a running enviro
 functions and receive their output.
 
 To reduce the pains of integrating yet another technology into your development stack, a 
-[manager process](#jshostmanager) is provided as a dev tool. The manager runs in the background
+[manager process](#jshostmanager) is provided as a development tool. The manager runs in the background
 and spawn JS hosts which persist only as long as your python process is running.
 
 
@@ -101,8 +101,8 @@ API
 
 ### Function
 
-`Function` objects enable you to connect to a running JS host and request the output of a function which 
-matches a specified name.
+`Function` objects enable you to connect to a running JS host and request the output of the function
+matching the specified name.
 
 If your `host.config.js` file resembled the following
 
@@ -220,7 +220,7 @@ Managers solve the following problems:
   initial overhead, but are performant after the first run, compilers are the usual
   example. If a JS host runs as a child process of the python process, it will have
   to restart whenever the python process does. Given the frequent restarts of python
-  development servers, the issue of a compiler's inital overhead becomes painful very
+  development servers, the issue of a compiler's initial overhead becomes painful very
   quickly.
 - If you run the host process as a detached child, the lack of restarts will improve 
   performance, but it introduces additional overheads as you need to ensure that the 
@@ -234,16 +234,30 @@ Managers solve the following problems:
 
 Be aware that `JSHostManagers` have some identified issues:
 
-- Managed hosts can persist after their config file has changed. To force a restart of a 
-  managed host, call `restart` on a `JSHost` instance. For example:
-  ```
+- Managed hosts can persist after their config file has changed. To force a restart
+  of a managed host, you can call the `restart` method on a `JSHost` instance.
+
+  For example
+  ```python
+  # Run this after you have configured js_host.conf.settings
+
   from js_host.host import host
-  
   host.restart()
   ```
-- Managers and managed hosts do not currently provide a means to inspect their stdout or 
-  stderr. This can complicate debugging as you need to rely on the host's response cycle 
-  to introspect an environment. [This issue is tracked in #3](markfinger/python-js-host#3)
+- Managers and managed hosts do not provide a means to inspect their stdout or stderr.
+
+  This can complicate debugging as you need to rely on the host's response cycle to introspect
+  an environment.
+
+  [Tracked in python-js-host#3](markfinger/python-js-host#3)
+- If a managed host crashes, you will need to restart the python process to restart the
+  host.
+
+  Note: this behaviour will not change, as respawning crashed hosts hides the underlying issue.
+
+  [Tracked in python-js-host#4](markfinger/python-js-host#4)
+- Managers and managed hosts are only compatible with OSX and *nix systems.
+  [Tracked in js-host#7](markfinger/js-host#7)
 
 If you wish to avoid these issues, you are recommended to set the `USE_MANGER` setting
 to `False`, and [start hosts manually](#usage-in-production).
