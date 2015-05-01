@@ -20,6 +20,12 @@ module.exports = {
 				}
 				done(null, data.echo);
 			}, 500);
-		}
+		},
+		counter: (function() {
+			var count = 0;
+			return function(data, cb) {
+				cb(null, ++count);
+			};
+		})()
 	}
 };

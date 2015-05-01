@@ -1,12 +1,22 @@
 import copy
+import json
+import atexit
+import sys
+from optional_django import six
+from requests.exceptions import ConnectionError as RequestsConnectionError
 from .conf import settings
-from .verbosity import PROCESS_START, PROCESS_STOP
+from .exceptions import ProcessError, ConfigError
+from .verbosity import DISCONNECT, PROCESS_START, PROCESS_STOP
 from .base_server import BaseServer
 
 
 class JSHost(BaseServer):
     expected_type_name = 'Host'
+
+    # Generated at runtime for managed hosts
     manager = None
+    logfile = None
+    connection = None
 
     def __init__(self, *args, **kwargs):
         if 'manager' in kwargs:
@@ -15,13 +25,12 @@ class JSHost(BaseServer):
             if 'config_file' in kwargs:
                 self.config_file = kwargs.pop('config_file')
             else:
-                # Reuse the manager's status to avoid the overhead of reading the config
-                # file again. Once the manager has spawned the host, it will provide the
-                # real details
                 self.config_file = self.manager.get_path_to_config_file()
-                status = copy.deepcopy(self.manager.get_status())
-                status['type'] = self.expected_type_name
-                self.status = status
+
+            status = self.manager.fetch_host_status(self.get_path_to_config_file())
+            if status['started']:
+                self.status = json.loads(status['host']['output'])
+                self.logfile = status['host']['logfile']
 
         super(JSHost, self).__init__(*args, **kwargs)
 
@@ -29,31 +38,84 @@ class JSHost(BaseServer):
         if not self.manager:
             raise NotImplementedError('{} must be started manually'.format(self.get_name()))
 
-        host = self.manager.start_host(self.get_path_to_config_file())
+        status = self.manager.fetch_host_status(self.get_path_to_config_file())
 
-        self.status = host['status']
+        if status['started']:
+            raise ProcessError('{} has already started'.format(self.get_name()))
 
-        if host['started'] and settings.VERBOSITY >= PROCESS_START:
+        data = self.manager.start_host(self.get_path_to_config_file())
+
+        self.status = json.loads(data['output'])
+        self.logfile = data['logfile']
+
+        if settings.VERBOSITY >= PROCESS_START:
             print('Started {}'.format(self.get_name()))
 
     def stop(self, timeout=None, stop_manager_if_last=None):
         if not self.manager:
             raise NotImplementedError('{} must be stopped manually'.format(self.get_name()))
 
-        stopped = self.manager.stop_host(self.get_path_to_config_file(), stop_if_last=stop_manager_if_last)
+        self.manager.stop_host(self.get_path_to_config_file())
 
-        if stopped and settings.VERBOSITY >= PROCESS_STOP:
-            if timeout:
-                print(
-                    '{name} will stop in {seconds} seconds'.format(
-                        name=self.get_name(),
-                        seconds=timeout / 1000.0,
-                    )
-                )
-            else:
-                print('Stopped {}'.format(self.get_name()))
+        if settings.VERBOSITY >= PROCESS_STOP:
+            print('Stopped {}'.format(self.get_name()))
 
     def restart(self):
-        self.stop(stop_manager_if_last=False)
-        self.start()
-        self.connect()
+        if not self.manager:
+            raise NotImplementedError('{} must be restarted manually'.format(self.get_name()))
+
+        self.manager.restart_host(self.get_path_to_config_file())
+        self.status = self.request_status()
+
+    def connect(self):
+        if self.manager:
+            if not self.connection:
+                data = self.manager.open_connection_to_host(self.get_path_to_config_file())
+                self.connection = data['connection']
+
+            # Ensure that the connection is closed once the python
+            # process has exited
+            atexit.register(self.disconnect)
+
+        super(JSHost, self).connect()
+
+    def disconnect(self):
+        if not self.manager:
+            raise NotImplementedError('Only managed hosts can disconnect'.format(self.get_name()))
+
+        if not self.connection or not self.manager.is_running():
+            return
+
+        self.manager.close_connection_to_host(self.get_path_to_config_file(), self.connection)
+
+        if settings.VERBOSITY >= DISCONNECT:
+            print(
+                'Closed connection to {} - {}'.format(
+                    self.get_name(),
+                    self.connection,
+                )
+            )
+
+        self.connection = None
+
+    def send_request(self, *args, **kwargs):
+        """
+        Intercept connection errors which suggest that a managed host has
+        crashed and raise an exception indicating the location of the log
+        """
+        try:
+            return super(JSHost, self).send_request(*args, **kwargs)
+        except RequestsConnectionError as e:
+            if (
+                self.manager and
+                self.has_connected and
+                self.logfile and
+                'unsafe' not in kwargs
+            ):
+                raise ProcessError(
+                    '{} appears to have crashed, you can inspect the log file at {}'.format(
+                        self.get_name(),
+                        self.logfile,
+                    )
+                )
+            raise six.reraise(RequestsConnectionError, RequestsConnectionError(*e.args), sys.exc_info()[2])

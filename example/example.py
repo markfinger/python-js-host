@@ -1,14 +1,12 @@
 import os
 import js_host.conf
 from js_host.function import Function
-from js_host import verbosity
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 js_host.conf.settings.configure(
     USE_MANAGER=True,
     SOURCE_ROOT=BASE_DIR,
-    VERBOSITY=verbosity.VERBOSE,
 )
 
 greet = Function('greet')

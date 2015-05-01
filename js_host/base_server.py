@@ -2,6 +2,8 @@ import json
 import os
 import subprocess
 import requests
+import warnings
+from optional_django import six
 from distutils.spawn import find_executable
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from .conf import settings
@@ -10,6 +12,8 @@ from .exceptions import ConfigError, ConnectionError, UnexpectedResponse
 
 
 class BaseServer(object):
+    supported_version = ('0', '10')
+
     # Config
     path_to_node = None
     source_root = None
@@ -59,6 +63,16 @@ class BaseServer(object):
 
         if not os.path.exists(self.get_path_to_config_file()):
             raise ConfigError('Config file {} does not exist'.format(self.get_path_to_config_file()))
+
+        version = self.get_version().split('.')
+        for i, number in enumerate(self.supported_version):
+            if version[i] != number:
+                raise ConfigError(
+                    'Version {} of the js-host JavaScript library is supported, the system reported {}'.format(
+                        '.'.join(self.supported_version),
+                        self.get_version(),
+                    )
+                )
 
         type_name = self.get_type_name()
         if type_name != self.expected_type_name:
@@ -153,16 +167,48 @@ class BaseServer(object):
 
         return func(url, **kwargs)
 
+    def send_json_request(self, *args, **kwargs):
+        kwargs['post'] = True
+        kwargs['headers'] = {'content-type': 'application/json'}
+
+        if 'data' in kwargs and not isinstance(kwargs['data'], six.string_types):
+            kwargs['data'] = json.dumps(kwargs['data'])
+
+        return self.send_request(*args, **kwargs)
+
     def request_status(self):
         try:
             res = self.send_request('status', unsafe=True)
         except RequestsConnectionError:
             return
 
-        return json.loads(res.text)
+        try:
+            return res.json()
+        except ValueError:
+            return None
 
     def is_running(self):
-        return self.get_status() == self.request_status()
+        expected_status = self.get_status()
+        actual_status = self.request_status()
+
+        if not actual_status:
+            return False
+
+        if expected_status == actual_status:
+            return True
+
+        if 'version' in actual_status and 'version' in expected_status:
+            expected_version = expected_status['version']
+            actual_version = actual_status['version']
+            if expected_version != actual_version:
+                warnings.warn(
+                    (
+                        'Remote js-host server appears to be using a different version. Expected {} but found {}. '
+                        'Connections will not be opened unless the versions match'
+                    ).format(expected_version, actual_version)
+                )
+
+        return False
 
     def start(self):
         raise NotImplementedError()

@@ -1,11 +1,9 @@
-import atexit
 import time
 import subprocess
-import json
 from .base_server import BaseServer
 from .conf import settings
 from .verbosity import PROCESS_START, PROCESS_STOP
-from .exceptions import ErrorStartingProcess, UnexpectedResponse
+from .exceptions import ProcessError, UnexpectedResponse
 
 
 class JSHostManager(BaseServer):
@@ -22,36 +20,59 @@ class JSHostManager(BaseServer):
 
         stderr = process.stderr.read()
         if stderr:
-            raise ErrorStartingProcess(stderr)
+            if 'EADDRINUSE' in stderr:
+                raise ProcessError(
+                    (
+                        '{} is attempting to run at an address already in use. To run the process at another address, '
+                        'you can set the `port` property of your host\'s config to a different number. If the problem '
+                        'persists, this is an indication of unstopped processes and/or version mismatches'
+                    ).format(self.get_name())
+                )
+            raise ProcessError(stderr)
 
         if not self.is_running():
-            raise ErrorStartingProcess('Failed to start manager')
+            raise ProcessError('Failed to start manager')
 
         if settings.VERBOSITY >= PROCESS_START:
             print('Started {}'.format(self.get_name()))
 
     def stop(self):
-        if self.is_running():
-            res = self.send_request('manager/stop', post=True)
+        """
+        If the manager is running, tell it to stop its process
+        """
+        res = self.send_request('manager/stop', post=True)
 
-            if res.status_code != 200:
-                raise UnexpectedResponse(
-                    'Attempted to stop host. {res_code}: {res_text}'.format(
-                        res_code=res.status_code,
-                        res_text=res.text,
-                    )
+        if res.status_code != 200:
+            raise UnexpectedResponse(
+                'Attempted to stop manager. {res_code}: {res_text}'.format(
+                    res_code=res.status_code,
+                    res_text=res.text,
                 )
+            )
 
-            if settings.VERBOSITY >= PROCESS_STOP:
-                print('Stopped {}'.format(self.get_name()))
+        if settings.VERBOSITY >= PROCESS_STOP:
+            print('Stopped {}'.format(self.get_name()))
 
-            # The request will end just before the process stop, so there is a tiny
-            # possibility of a race condition. We delay as a precaution so that we
-            # can be reasonably confident of the system's state.
-            time.sleep(0.05)
+        # The request will end just before the process stops, so there is a tiny
+        # possibility of a race condition. We delay as a precaution so that we
+        # can be reasonably confident of the system's state.
+        time.sleep(0.05)
 
     def restart(self):
         raise NotImplementedError()
+
+    def fetch_host_status(self, config_file):
+        res = self.send_json_request('host/status', data={'config': config_file})
+
+        if res.status_code != 200:
+            raise UnexpectedResponse(
+                'Attempted to check a managed JSHost\'s status: {res} - {res_text}'.format(
+                    res=res,
+                    res_text=res.text
+                )
+            )
+
+        return res.json()
 
     def start_host(self, config_file):
         """
@@ -63,7 +84,7 @@ class JSHostManager(BaseServer):
         host is running, the manager returns information so that the host knows
         where to send requests
         """
-        res = self.send_request('host/start', params={'config': config_file}, post=True)
+        res = self.send_json_request('host/start', data={'config': config_file})
 
         if res.status_code != 200:
             raise UnexpectedResponse(
@@ -73,64 +94,69 @@ class JSHostManager(BaseServer):
                 )
             )
 
-        host = res.json()
+        return res.json()
 
-        host['status'] = json.loads(host['output'])
-
-        # When the python process exits, we ask the manager to stop the
-        # host after a timeout. If the python process is merely restarting,
-        # the timeout will be cancelled when the next connection is opened.
-        # If the python process is shutting down for good, this enables some
-        # assurance that the host's process will inevitably stop.
-        atexit.register(
-            self.stop_host,
-            config_file=config_file,
-            timeout=settings.ON_EXIT_STOP_MANAGED_HOSTS_AFTER,
-        )
-
-        return host
-
-    def stop_host(self, config_file, timeout=None, stop_if_last=None):
+    def stop_host(self, config_file):
         """
         Stops a managed host specified by `config_file`.
-
-        `timeout` specifies the number of milliseconds that the host will be
-        stopped in. If `timeout` is provided, the method will complete while the
-        host is still running
-
-        `stop_if_last` indicates that the manager should stop if this host is
-        the last one being managed.
         """
-
-        if not self.is_running():
-            return False
-
-        params = {
-            'config': config_file,
-        }
-
-        if stop_if_last is None:
-            stop_if_last = True
-
-        if stop_if_last:
-            params['stop-manager-if-last-host'] = True
-
-        if timeout:
-            params['timeout'] = timeout
-
-        res = self.send_request('host/stop', params=params, post=True)
+        res = self.send_json_request('host/stop', data={'config': config_file})
 
         if res.status_code != 200:
             raise UnexpectedResponse(
-                'Attempted to stop JSHost. Response: {res_code}: {res_text}'.format(
+                'Attempted to stop a JSHost. Response: {res_code}: {res_text}'.format(
                     res_code=res.status_code,
                     res_text=res.text,
                 )
             )
 
-        if not timeout:
-            # The manager will stop the host after a few milliseconds, so we need to
-            # ensure that the state of the system is as expected
-            time.sleep(0.05)
+        return res.json()
 
-        return True
+    def restart_host(self, config_file):
+        """
+        Restarts a managed host specified by `config_file`.
+        """
+
+        res = self.send_json_request('host/restart', data={'config': config_file})
+
+        if res.status_code != 200:
+            raise UnexpectedResponse(
+                'Attempted to restart a JSHost. Response: {res_code}: {res_text}'.format(
+                    res_code=res.status_code,
+                    res_text=res.text,
+                )
+            )
+
+        return res.json()
+
+    def open_connection_to_host(self, config_file):
+        res = self.send_json_request('host/connect', data={'config': config_file})
+
+        if res.status_code != 200:
+            raise UnexpectedResponse(
+                'Attempted to open a managed JSHost connection. Response: {res_code}: {res_text}'.format(
+                    res_code=res.status_code,
+                    res_text=res.text,
+                )
+            )
+
+        return res.json()
+
+    def close_connection_to_host(self, config_file, connection):
+        res = self.send_json_request(
+            'host/disconnect',
+            data={
+                'config': config_file,
+                'connection': connection,
+            },
+        )
+
+        if res.status_code != 200:
+            raise UnexpectedResponse(
+                'Attempted to close a managed JSHost connection. Response: {res_code}: {res_text}'.format(
+                    res_code=res.status_code,
+                    res_text=res.text,
+                )
+            )
+
+        return res.text

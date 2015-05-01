@@ -1,6 +1,7 @@
 import json
 import os
 import unittest
+import time
 from js_host.base_server import BaseServer
 from js_host.exceptions import ConnectionError
 from js_host.js_host import JSHost
@@ -77,7 +78,7 @@ class TestManager(unittest.TestCase):
 
         self.assertRaises(ConnectionError, manager.connect)
 
-    def test_managers_stop_once_the_last_host_has(self):
+    def test_managers_stop_shortly_after_the_last_host_has_disconnected(self):
         manager = JSHostManager(config_file=manager_lifecycle_config_file)
 
         manager.start()
@@ -97,10 +98,19 @@ class TestManager(unittest.TestCase):
 
         self.assertTrue(host2.is_running())
 
-        host1.stop()
+        host1.disconnect()
+        time.sleep(0.2)
+
+        self.assertFalse(host1.is_running())
+        self.assertTrue(manager.is_running())
+
+        data = manager.fetch_host_status(host1.get_path_to_config_file())
+        self.assertFalse(data['started'])
 
         self.assertTrue(manager.is_running())
 
-        host2.stop()
+        host2.disconnect()
+        time.sleep(0.2)
 
+        self.assertFalse(host2.is_running())
         self.assertFalse(manager.is_running())

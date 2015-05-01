@@ -18,5 +18,5 @@ class UnexpectedResponse(Exception):
     pass
 
 
-class ErrorStartingProcess(Exception):
+class ProcessError(Exception):
     pass

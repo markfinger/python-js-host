@@ -15,9 +15,6 @@ class Function(object):
     timeout = None
     exception_cls = None
 
-    # Read in from the config file
-    config = None
-
     def __init__(self, name=None, host=None, timeout=None, exception_cls=None):
         if name is not None:
             self.name = name
@@ -57,24 +54,22 @@ class Function(object):
             )
 
         serialized_data = self.serialize_data(kwargs)
-        key = self.generate_key(serialized_data, kwargs)
+        params = self.generate_params(serialized_data, kwargs)
         timeout = self.get_timeout()
 
         if settings.VERBOSITY >= FUNCTION_CALL:
             print(
-                'Calling function "{}" with key {} and data {}'.format(
+                'Calling function "{}" with params {} and data {}'.format(
                     self.name,
-                    key,
+                    params,
                     serialized_data,
                 )
             )
 
         try:
-            res = host.send_request(
+            res = host.send_json_request(
                 'function/{}'.format(self.name),
-                params={'key': key},
-                headers={'content-type': 'application/json'},
-                post=True,
+                params=params,
                 data=serialized_data,
                 timeout=timeout,
             )
@@ -116,12 +111,19 @@ class Function(object):
     def get_name(self):
         return self.name
 
-    def serialize_data(self, data):
+    @staticmethod
+    def serialize_data(data):
         return json.dumps(data, cls=JSONEncoder)
 
-    def generate_key(self, serialized_data, data):
-        serialized_data = serialized_data.encode('utf-8')
-        return hashlib.sha1(serialized_data).hexdigest()
+    @staticmethod
+    def generate_key(content):
+        content = content.encode('utf-8')
+        return hashlib.sha1(content).hexdigest()
+
+    def generate_params(self, serialized_data, data):
+        return {
+            'key': self.generate_key(serialized_data)
+        }
 
     def get_timeout(self):
         if self.timeout:

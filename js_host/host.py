@@ -14,7 +14,11 @@ if settings.USE_MANAGER:
     manager.connect()
 
     host = JSHost(manager=manager)
-    host.start()
+
+    # Managed hosts run as persistent processes, so it may already be running
+    if not host.is_running():
+        host.start()
+
     host.connect()
 else:
     manager = None

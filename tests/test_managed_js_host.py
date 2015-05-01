@@ -1,6 +1,7 @@
 import json
 import os
-from js_host.exceptions import ConnectionError
+from optional_django import six
+from js_host.exceptions import ConnectionError, UnexpectedResponse, ProcessError
 from js_host.manager import JSHostManager
 from js_host.js_host import JSHost
 from .base_js_host_tests import BaseJSHostTests
@@ -61,28 +62,102 @@ class TestManagedJSHost(BaseJSHostTests):
 
         self.assertTrue(manager.is_running())
 
-        host = JSHost(manager=manager)
+        host1 = JSHost(manager=manager)
 
         # Should not be able to connect, even though a manager is running
         # on the expected port
-        self.assertEqual(host.get_config()['port'], 23456)
-        self.assertRaises(ConnectionError, host.connect)
-        self.assertFalse(host.is_running())
+        self.assertEqual(host1.get_config()['port'], 23456)
+        self.assertRaises(UnexpectedResponse, host1.connect)
+        self.assertFalse(host1.is_running())
 
-        host.start()
-        self.assertTrue(host.is_running())
+        host1.start()
+        self.assertTrue(host1.is_running())
 
-        host.connect()
-        self.assertTrue(host.is_running())
+        host1.connect()
+        self.assertTrue(host1.is_running())
 
-        host.stop()
-        self.assertFalse(host.is_running())
-        self.assertRaises(ConnectionError, host.connect)
+        res = host1.send_json_request('function/test')
+        self.assertEqual(res.text, 'test')
+
+        host1.disconnect()
+        self.assertTrue(host1.is_running())
+
+        host2 = JSHost(manager=manager)
+
+        self.assertIsInstance(host2.logfile, six.string_types)
+        self.assertEqual(host2.logfile, host1.logfile)
+
+        host2.connect()
+
+        res = host2.send_json_request('function/test')
+        self.assertEqual(res.text, 'test')
+
+        host2.disconnect()
+        self.assertTrue(host1.is_running())
+
+        host2.stop()
+        self.assertFalse(host2.is_running())
+        self.assertRaises(UnexpectedResponse, host2.connect)
 
         manager.stop()
 
     def test_can_restart(self):
+        count1 = int(self.host.send_json_request('function/counter').text)
+        count2 = int(self.host.send_json_request('function/counter').text)
+        self.assertEqual(count2, count1 + 1)
+
         port = self.host.get_config()['port']
+        logfile = self.host.logfile
+
         self.host.restart()
         self.assertTrue(self.host.is_running())
-        self.assertNotEqual(port, self.host.get_config()['port'])
+        self.assertEqual(int(self.host.send_json_request('function/counter').text), 1)
+        self.assertEqual(int(self.host.send_json_request('function/counter').text), 2)
+
+        # Ensure the host continues to run on the same port
+        self.assertEqual(port, self.host.get_config()['port'])
+
+        # Ensure the same logfile is used
+        host_status = self.manager.fetch_host_status(self.host.get_path_to_config_file())
+        self.assertEqual(host_status['host']['logfile'], logfile)
+        self.assertEqual(logfile, self.host.logfile)
+
+    def test_its_output_is_written_to_a_logfile(self):
+        self.assertIsInstance(self.host.logfile, six.string_types)
+        with open(self.host.logfile, 'r') as logfile:
+            logfile.read()
+            self.host.send_request('status')
+            new_content = logfile.read()
+            self.assertIn('GET /status', new_content)
+            res = self.host.send_request('function/error', post=True, headers={'content-type': 'application/json'})
+            self.assertEqual(res.status_code, 500)
+            error_content = logfile.read()
+            self.assertIn('Hello from error function', error_content)
+
+    def test_if_a_managed_host_crashes_the_exception_points_to_the_logfile(self):
+        manager = JSHostManager(config_file=managed_host_lifecycle_config_file)
+        manager.start()
+        manager.connect()
+
+        host = JSHost(manager=manager)
+        host.start()
+        host.connect()
+
+        self.assertEqual(host.send_json_request('function/test').text, 'test')
+
+        self.assertIsNotNone(host.logfile)
+
+        host.stop()
+
+        try:
+            host.send_json_request('function/test')
+        except ProcessError as e:
+            self.assertEqual(
+                e.message,
+                '{} appears to have crashed, you can inspect the log file at {}'.format(
+                    host.get_name(),
+                    host.logfile,
+                )
+            )
+
+        manager.stop()
