@@ -1,5 +1,6 @@
 import time
 import subprocess
+from optional_django import six
 from .base_server import BaseServer
 from .conf import settings
 from .verbosity import PROCESS_START, PROCESS_STOP
@@ -20,7 +21,7 @@ class JSHostManager(BaseServer):
 
         stderr = process.stderr.read()
         if stderr:
-            if 'EADDRINUSE' in stderr:
+            if six.b('EADDRINUSE') in stderr:
                 raise ProcessError(
                     (
                         '{} is attempting to run at an address already in use. To run the process at another address, '

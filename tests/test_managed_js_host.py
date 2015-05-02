@@ -152,12 +152,12 @@ class TestManagedJSHost(BaseJSHostTests):
         try:
             host.send_json_request('function/test')
         except ProcessError as e:
-            self.assertEqual(
-                e.message,
+            self.assertIn(
                 '{} appears to have crashed, you can inspect the log file at {}'.format(
                     host.get_name(),
                     host.logfile,
-                )
+                ),
+                str(e),
             )
 
         manager.stop()
