@@ -369,8 +369,8 @@ INSTALLED_APPS = (
 )
 
 JS_HOST = {
-	'SOURCE_ROOT': '/path/to/your/project',
-	'USE_MANAGER': DEBUG,
+    'SOURCE_ROOT': '/path/to/your/project',
+    'USE_MANAGER': DEBUG,
 }
 ```
 
