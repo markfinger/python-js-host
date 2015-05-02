@@ -10,7 +10,7 @@ class Conf(conf.Conf):
     PATH_TO_NODE = 'node'
 
     # An absolute path to the directory which contains your node_modules directory
-    SOURCE_ROOT = None
+    SOURCE_ROOT = os.getcwd()
 
     # A path to the binary used to control hosts and managers.
     BIN_PATH = os.path.join('node_modules', '.bin', 'js-host')
