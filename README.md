@@ -318,18 +318,6 @@ raising exceptions.
 Default: `10.0`
 
 
-### ON_EXIT_STOP_MANAGED_HOSTS_AFTER
-
-Indicates how many milliseconds the manager will wait before stopping hosts.
-
-When the python process exits, the manager is informed to stop the host once this
-timeout has expired. If the python process is only restarting, the manager will
-cancel the timeout once it has reconnected. If the python process is shutting down
-for good, the manager will stop the host's process shortly.
-
-Default:  `5 * 1000  # 5 seconds`
-
-
 ### VERBOSITY
 
 Indicates how much information the host should print the terminal. By default this

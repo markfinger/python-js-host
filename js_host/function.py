@@ -42,13 +42,17 @@ class Function(object):
 
         if not configured_functions:
             raise ConfigError(
-                '{} does not have any functions configured'.format(host.get_name())
+                '{} does not have any functions configured in {}'.format(
+                    host.get_name(),
+                    host.get_path_to_config_file(),
+                )
             )
 
         if self.name not in configured_functions:
             raise ConfigError(
-                '{} is not configured to use function {}'.format(
+                '{}\'s config file does not contain a function named {}'.format(
                     host.get_name(),
+                    host.get_path_to_config_file(),
                     self.name,
                 )
             )

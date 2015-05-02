@@ -12,7 +12,7 @@ from .exceptions import ConfigError, ConnectionError, UnexpectedResponse
 
 
 class BaseServer(object):
-    supported_version = ('0', '10')
+    supported_version = ('0', '11')
 
     # Config
     path_to_node = None

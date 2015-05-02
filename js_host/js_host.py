@@ -86,15 +86,15 @@ class JSHost(BaseServer):
         if not self.connection or not self.manager.is_running():
             return
 
-        self.manager.close_connection_to_host(self.get_path_to_config_file(), self.connection)
+        data = self.manager.close_connection_to_host(self.get_path_to_config_file(), self.connection)
 
-        if settings.VERBOSITY >= DISCONNECT:
-            print(
-                'Closed connection to {} - {}'.format(
-                    self.get_name(),
-                    self.connection,
+        if data['started'] and settings.VERBOSITY >= DISCONNECT:
+            message = 'Closed connection to {} - {}'.format(self.get_name(), self.connection)
+            if data['stopTimeout']:
+                message += '. Host will stop in {} seconds unless another connection is opened'.format(
+                    data['stopTimeout'] / 1000.0
                 )
-            )
+            print(message)
 
         self.connection = None
 

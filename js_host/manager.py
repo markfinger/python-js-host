@@ -135,7 +135,7 @@ class JSHostManager(BaseServer):
 
         if res.status_code != 200:
             raise UnexpectedResponse(
-                'Attempted to open a managed JSHost connection. Response: {res_code}: {res_text}'.format(
+                'Attempted to open a connection to a managed JSHost. Response: {res_code}: {res_text}'.format(
                     res_code=res.status_code,
                     res_text=res.text,
                 )
@@ -154,10 +154,10 @@ class JSHostManager(BaseServer):
 
         if res.status_code != 200:
             raise UnexpectedResponse(
-                'Attempted to close a managed JSHost connection. Response: {res_code}: {res_text}'.format(
+                'Attempted to close a connection to a managed JSHost. Response: {res_code}: {res_text}'.format(
                     res_code=res.status_code,
                     res_text=res.text,
                 )
             )
 
-        return res.text
+        return res.json()
