@@ -2,18 +2,20 @@
 
 [![Build Status](https://travis-ci.org/markfinger/python-js-host.svg?branch=master)](https://travis-ci.org/markfinger/python-js-host)
 
-Python bindings to a performant JavaScript environment, enabling you to easily integrate JavaScript
-into your stack.
+Python bindings to a performant JavaScript environment.
 
-There are a variety of libraries which provide access to JS engines, PyExecJS et al, but they only
-provide basic functionality, suffer performance problems, and introduce setup overhead.
+There are a variety of libraries which provide access to JS engines, PyExecJS et al, but they only provide 
+basic functionality, suffer performance problems, and introduce setup overhead. Rather than provide low-level 
+hooks to evaluate JavaScript, this library hooks in to an
+[opinionated JavaScript layer](https://github.com/markfinger/js-host) which runs persistent and performant 
+environments built for easy configuration.
 
-This library provides bindings to a [JavaScript layer](https://github.com/markfinger/js-host)
-which sits atop Node and provides access to a persistent JS environment built for performance and
-easy configuration.
+In development, a [manager process](#jshostmanager) is provided to reduce your integration overheads. The 
+process runs in the background and spawns environments which your python process uses. Once your python 
+process no longer needs the environment, the manager handles the overhead of stopping the environment and
+cleaning up after itself.
 
-To reduce the pains of integrating yet another technology into your stack, a
-[manager process](#jshostmanager) is provided as a development tool to smooth over the humps.
+In production, the same codebase is used to connect to environments which you spawn and control manually.
 
 
 Installation
@@ -29,7 +31,7 @@ Dependencies
 
 [node](nodejs.org) or [io.js](https://iojs.org/)
 
-[npm](https://www.npmjs.com/)
+[js-host](https://github.com/markfinger/js-host)
 
 
 Quick start
@@ -60,41 +62,29 @@ module.exports = {
 };
 ```
 
-Create a file named `hello_world.py` and insert the following
+Open a python shell and run the following
 
 ```python
-import os
 import js_host.conf
-from js_host.function import Function
 
-js_host.conf.settings.configure(
-  SOURCE_ROOT=os.path.dirname(os.path.abspath(__file__)),
-  USE_MANAGER=True,
-)
+js_host.conf.settings.configure(USE_MANAGER=True)
+```
+
+If everything went ok, you should see some output as the manager process spins up and then spawns a host 
+which runs an environment using your `host.config.js` file.
+
+In the same python shell, run the following
+
+```
+from js_host.function import Function
 
 hello_world = Function('hello_world')
 
-print(hello_world.call())
+hello_world.call()
 
-print(hello_world.call(name='Foo'))
+hello_world.call(name='Foo')
 ```
 
-Note: if you are using this library in a Django project, you will need to configure the settings differently `js_host.conf.settings.configure`
-need to configure `js_host`
-in a slightly different way.
-
-Run the `hello_world.py` file
-
-```bash
-python hello_world.py
-```
-
-If everything went ok, you should see some output as the JS host starts and then the following two lines
-
-```
-Hello, World!
-Hello, Foo!
-```
 
 API
 ---
@@ -369,8 +359,8 @@ INSTALLED_APPS = (
 )
 
 JS_HOST = {
-    'SOURCE_ROOT': '/path/to/your/project',
-    'USE_MANAGER': DEBUG,
+	'SOURCE_ROOT': '/path/to/your/project',
+	'USE_MANAGER': DEBUG,
 }
 ```
 
