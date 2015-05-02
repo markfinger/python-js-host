@@ -2,11 +2,8 @@ import os
 import js_host.conf
 from js_host.function import Function
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 js_host.conf.settings.configure(
-    USE_MANAGER=True,
-    SOURCE_ROOT=BASE_DIR,
+    USE_MANAGER=True
 )
 
 greet = Function('greet')
@@ -27,4 +24,4 @@ if __name__ == '__main__':
     filename = raw_input('Enter a file to read (defaults to host.config.js): ')
     filename = filename or 'host.config.js'
 
-    print('Response: \n' + read_file.call(file=os.path.join(BASE_DIR, filename)) + '\n')
+    print('Response: \n' + read_file.call(file=os.path.join(os.getcwd(), filename)) + '\n')

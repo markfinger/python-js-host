@@ -2,21 +2,18 @@
 
 [![Build Status](https://travis-ci.org/markfinger/python-js-host.svg?branch=master)](https://travis-ci.org/markfinger/python-js-host)
 
-Provides the plumbing to performantly pass data from Python to JavaScript, and receive the generated output.
+Python bindings to a performant JavaScript environment, enabling you to easily integrate JavaScript
+into your stack.
 
 There are a variety of libraries which provide access to JS engines, PyExecJS et al, but they only
-provide basic functionality, suffer performance problems, and require you to generate strings of 
-JS which are evaluated. 
+provide basic functionality, suffer performance problems, and introduce setup overhead.
 
-The [js-host](https://github.com/markfinger/js-host) package avoids these issues by providing a performant 
-and persistent JS environment with easy access to the entire node & io.js ecosystem.
+This library provides bindings to a [JavaScript layer](https://github.com/markfinger/js-host)
+which sits atop Node and provides access to a persistent JS environment built for performance and
+easy configuration.
 
-This python layer provides the bindings necessary to connect to a running environment, call specific 
-functions and receive their output.
-
-To reduce the pains of integrating yet another technology into your development stack, a 
-[manager process](#jshostmanager) is provided as a development tool. The manager runs in the background
-and spawn JS hosts which persist only as long as your python process is running.
+To reduce the pains of integrating yet another technology into your stack, a
+[manager process](#jshostmanager) is provided as a development tool to smooth over the humps.
 
 
 Installation
@@ -81,6 +78,10 @@ print(hello_world.call())
 
 print(hello_world.call(name='Foo'))
 ```
+
+Note: if you are using this library in a Django project, you will need to configure the settings differently `js_host.conf.settings.configure`
+need to configure `js_host`
+in a slightly different way.
 
 Run the `hello_world.py` file
 
@@ -354,26 +355,27 @@ Default: `True`
 Django integration
 ------------------
 
-Due to Django's quirks, there are a few helpers provided to integrate this library
-into a django project.
+Due to some quirks in how Django's configuration layer works, there are a few helpers
+provided to integrate this library into a django project.
 
 Rather than defining settings by using `js_host.conf.settings.configure(...)`, you
-should place them into a dictionary in your django settings files and add `js_host` to your
-`INSTALLED_APPS` setting.
+should place them into a dictionary named `JS_HOST` in your django settings files and add
+`js_host` to your `INSTALLED_APPS` setting. For example
 
 ```
-INSTALLED_APPS += (
+INSTALLED_APPS = (
+  # ...
   'js_host',
 )
 
 JS_HOST = {
-	'SOURCE_ROOT': '/abs/path/to/your/project',
+	'SOURCE_ROOT': '/path/to/your/project',
 	'USE_MANAGER': DEBUG,
 }
 ```
 
-Once django has initialized, it will import `js_host.models` and start the process of
-fetching your settings and initializing a connection to a host.
+Once django has initialized, it will import `js_host` and trigger the app to start introspecting
+the environment and configuring itself.
 
 
 Usage in development

@@ -4,11 +4,11 @@ SILENT = 0
 # Output when connections are opened
 CONNECT = 100
 
-# Output when connections are closed
-DISCONNECT = 200
-
 # Output when managers and managed hosts are started
-PROCESS_START = 300
+PROCESS_START = 200
+
+# Output when connections are closed
+DISCONNECT = 300
 
 # Output when managers and managed hosts are sent `stop` signals
 PROCESS_STOP = 400
