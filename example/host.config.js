@@ -3,6 +3,7 @@
 var fs = require('fs');
 
 module.exports = {
+  // The functions that the host makes available
   functions: {
     greet: function(data, cb) {
       if (!data.name) return cb(new Error('No name was provided'));
@@ -22,10 +23,6 @@ module.exports = {
 
         cb(null, contents.toString());
       });
-    },
-    hello_world: function(data, cb) {
-      var name = data.name || 'World';
-      cb(null, 'Hello, ' + name + '!');
     }
   }
 };

@@ -1,7 +1,7 @@
 Example
 =======
 
-An example of how to integrate some basic JavaScript services into a Python application.
+Illustrates how to call some basic JavaScript functions from a Python application.
 
 
 Running the example
