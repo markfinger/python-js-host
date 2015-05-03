@@ -2,12 +2,12 @@
 
 [![Build Status](https://travis-ci.org/markfinger/python-js-host.svg?branch=master)](https://travis-ci.org/markfinger/python-js-host)
 
-Python bindings to a performant JavaScript environment.
+Python bindings to a [performant JavaScript environment](https://github.com/markfinger/js-host).
 
-There are a variety of libraries which provide access to JS engines, PyExecJS et al, but they only provide 
-basic functionality, suffer performance problems, and introduce setup overhead. This library hooks in to 
-an [opinionated JavaScript layer](https://github.com/markfinger/js-host) which runs persistent environments
-built for performance and easy configuration.
+There are a variety of libraries which provide access to JS engines, PyExecJS et al, but they only 
+provide basic functionality, suffer performance problems, and introduce setup overhead. This library 
+hooks in to an opinionated JavaScript layer which runs persistent environments built for performance 
+and easy configuration.
 
 In [development](#usage-in-development), a [manager process](#jshostmanager) is provided to simplify
 your workflow by automatically spawning hosts in the background.
