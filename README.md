@@ -2,18 +2,40 @@
 
 [![Build Status](https://travis-ci.org/markfinger/python-js-host.svg?branch=master)](https://travis-ci.org/markfinger/python-js-host)
 
-Python bindings to a performant JavaScript environment.
+Python bindings to a [performant JavaScript environment](https://github.com/markfinger/js-host).
 
-There are a variety of libraries which provide access to JS engines, PyExecJS et al, but they only provide 
-basic functionality, suffer performance problems, and introduce setup overhead. Rather than provide low-level 
-hooks to evaluate JavaScript, this library hooks in to an
-[opinionated JavaScript layer](https://github.com/markfinger/js-host) which runs persistent and performant 
-environments built for easy configuration.
+There are a variety of libraries which provide access to JS engines, PyExecJS et al, but they only 
+provide basic functionality, suffer performance problems, and introduce setup overhead. This library 
+hooks in to an opinionated JavaScript layer which runs persistent environments built for performance 
+and easy configuration.
 
-In [development](#usage-in-development), a [manager process](#jshostmanager) is provided to reduce integration overheads by automatically spawning hosts in the background.
+In [development](#usage-in-development), a [manager process](#jshostmanager) is provided to simplify
+your workflow by automatically spawning hosts in the background.
 
-In [production](#usage-in-production), the same codebase is used to connect to environments which you can easily
-run under your own supervisor process.
+In [production](#usage-in-production), the same codebase is used to connect to environments which you 
+can easily run under your own supervisor process.
+
+
+Documentation
+-------------
+
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Settings](#settings)
+- [Usage in Django projects](#usage-in-django-projects)
+- [Usage in development](#usage-in-development)
+- [Usage in production](#usage-in-production)
+  - [Logging](#logging)
+  - [Caching](#caching)
+    - [Caching requests](#caching-requests)
+- [API](#api)
+  - [Function](#function)
+  - [JSHost](#jshost)
+  - [JSHostManager](#jshostmanager)
+    - [Under the hood](#under-the-hood)
+    - [Quirks](#quirks)
+    - [Issues](#issues)
+- [Running the tests](#running-the-tests)
 
 
 Installation
@@ -23,19 +45,18 @@ Installation
 pip install js-host
 ```
 
+js-host requires access to a `node` binary provided by [Node.js](https://nodejs.org) or [io.js](https://iojs.org/).
 
-Dependencies
-------------
+On OSX you can install node with `brew install node`.
 
-[node](nodejs.org) or [io.js](https://iojs.org/)
-
-[js-host](https://github.com/markfinger/js-host)
+On Linux you can install node with `apt-get install nodejs` or a comparable command specific
+to your distribution's package manager.
 
 
 Quick start
 -----------
 
-Create a `package.json` file by running the following
+Create a `package.json` file with
 
 ```bash
 npm init
@@ -44,10 +65,10 @@ npm init
 Install the `js-host` JavaScript library with
 
 ```bash
-npm install js-host --save
+npm install js-host@0.11 --save
 ```
 
-Create a file named `host.config.js` and insert the following
+Create a file named `host.config.js` and insert
 
 ```javascript
 module.exports = {
@@ -60,12 +81,12 @@ module.exports = {
 };
 ```
 
-Open a python shell and run the following
+Open a python shell and run
 
 ```python
-import js_host.conf
+from js_host.conf import settings
 
-js_host.conf.settings.configure(USE_MANAGER=True)
+settings.configure(USE_MANAGER=True)
 ```
 
 If everything went ok, you should see some output as the manager process spins up and then spawns a host 
@@ -92,8 +113,9 @@ API
 
 ### Function
 
-`Function` objects enable you to pass data from your python process to a JavaScript environment. Functions 
-must be created with a string which matches a name specified in your config file.
+`js_host.function.Function` objects enable you to pass data from your python process to a JavaScript 
+environment. Functions must be instantiated with a string which matches a name specified in your config 
+file.
 
 If your `host.config.js` file resembled the following
 
@@ -115,7 +137,7 @@ module.exports = {
 
 You can call those functions from Python with the following
 
-```
+```python
 from js_host.function import Function
 
 greeter = Function('greeter')
@@ -129,37 +151,34 @@ double.call(number=20)  # returns '40'
 double.call()  # raises a error 'No number was provided'
 ```
 
-Keyword arguments provided to `call` are passed to the JS host as JSON, and they are provided
-to your function as its first argument. The second argument to your function is a callback 
-which your function calls to indicate that it has completed. 
-
-To indicate an error condition from your function, pass an `Error` object as the callback's 
-first argument. To indicate a success condition, invoke the callback with `null` as the first 
-argument and your value as the second argument.
+Keyword arguments provided to `call` are passed to the host as JSON. The host deserializes the
+data sent, and then passes the data to your function as its first argument. The second argument 
+to your function is a callback which allows you to pass data back to the python process.
 
 Your functions can complete their task either synchronously or asynchronously. Once the callback 
-has been passed a value, the host assumes that the function has completed and sends a response 
-back to the Python process.
+has been called, the host assumes that the function has completed and sends a response back to 
+the Python process.
 
-For more information on the API and behaviour of functions, refer to the 
-[js-host documentation on functions](https://github.com/markfinger/js-host#functions).
+For more information on the API and behaviour of functions, refer to the js-host's
+[documentation on functions](https://github.com/markfinger/js-host#functions).
 
 
 ### JSHost
 
-`JSHost` objects read in your config files and act as bridges to JS environments using those same
-config files.
+`JSHost` objects read in your config files and act as bridges to JavaScript environments generated
+from your config files.
 
-If you want to introspect a running host, there are some utils provided to assist you
+If you want to introspect a host, there are some utils provided
 
-```
+```python
+# Import the host generated from the values in `js_host.conf.settings`
 from js_host.host import host
 
 # An absolute path to the node binary used to run hosts
-self.path_to_node
+host.path_to_node
 
 # An absolute path to the `js-host` library used
-self.get_path_to_bin()
+host.get_path_to_bin()
 
 # Returns an absolute path to the config file used by the host
 host.get_path_to_config_file()
@@ -170,7 +189,7 @@ host.get_url()
 # Returns a dict containing information that the host reported during startup
 host.get_status()
 
-# Connects to a running host and returns information about the environment
+# Connects to a running host, requests information about it, and returns the data as a dict
 host.request_status()
 
 # Returns True/False if a host process is running at the expected url
@@ -189,55 +208,82 @@ from js_host.host import host
 # the JSHostManager instance that the host uses
 host.manager
 
-# An absolute path to a file that the managed host writes its logs to
+# An absolute path to a file that the host writes its logs to
 host.logfile
 
-# Connect to the manager and ask it to spawn a host using the host's config file
+# Connect to the manager and ask it to spawn a new host using your config file
 host.start()
 
 # Connect to the manager and ask it to stop the host
 host.stop()
 
-# Connect to the manager and ask it to respawn the host
+# Connect to the manager and ask it to restart the host
 host.restart()
 ```
 
 ### JSHostManager
 
-`JSHostManager` objects provide an interface to a detached process which runs on your local network 
-and spawns [js-host](https://github.com/markfinger/js-host) instances on demand.
-
-Note: do **not** use the manager in production, it only aims to solve issues relating
-to the typical development environment. Please refer to the 
-[usage in production](#usage-in-production) section before setting up a production
-environment.
+`js_host.manager.JSHostManager` objects provide an interface to a detached process which runs 
+on your local network and can spawn [js-host](https://github.com/markfinger/js-host) instances on 
+demand.
 
 The primary benefit of using a manager is that it abstracts away the bother of spawning a host 
-manually. During development, your primary goal is to build things - the complexities of running 
-processes should be left to production environments.
+manually. During development, your primary goal is to build things - issues regarding stability
+and logging should be left to production environments.
 
-Under the hood, managers are spun up in a child process which blocks the python process until 
-the manager is running. The child process spawns the manager in another process which is completely 
-detached from your python process. Using a detached process allows the manager and its hosts to 
-persist even when the python process has restarted or exited.
+To allow a manager to spawn instances automatically, set the `USE_MANAGER` setting to `True`.
 
-Once a manager is running, it starts listening for incoming requests which indicate that an 
-external process wants it to spawns a new js-host which uses a particular config file. Once the 
-new instance has been spawned, the python process asks the manager to register a new connection 
-to the host. 
+If you writting functions to be used on hosts you are recommended not to use a manager. Instead
+you should manually start hosts by referring to 
+[js-host's CLI usage](https://github.com/markfinger/js-host#cli-usage).
 
-When your python process exits, it quickly sends a disconnection signal to the manager, notifying
+Note: managers should only be used in development environments. Do **not** use the manager in 
+production. Please refer to the [usage in production](#usage-in-production) section before 
+configuring your production environment.
+
+
+#### Under the hood
+
+Managers are spun up via a child process of your python process. The child process blocks the python
+process until the manager has been spawned in a third process which is completely detached from
+your python process. Using a detached process allows the manager and its hosts to persist even 
+when your python process has restarted or exited.
+
+Once a manager is running, it starts listening for incoming requests which indicate that your
+python process wants it to spawn a new js-host using a particular config file. Once the new 
+instance has been spawned, the python process asks the manager to register a new connection 
+to the host.
+
+When your python process exits, it quickly sends a disconnect signal to the manager, notifying
 the manager that any hosts spawned are no longer required. Once a spawned host's connections have 
 all closed, the manager waits 5 seconds for any new connections to be opened, before it stops the 
 host's process.
 
-To clean up after itself, a manager will stop its own process once every host has been stopped.
+This connect/disconnect method enables your python process to hook in to persistent JS
+environments which survive even when your python process has restarted. Maintaining persistent
+environments enables you to integrate JS technologies which have a high startup cost that should 
+only be incurred once. A typical use-case where this optimisation provides massive performance 
+improvements is integrating a compiler - such as webpack or browserify - which have a sizable 
+startup overhead as they parse all of your files.
 
-Be aware that managers have some quirks:
+When all of a manager's hosts have been disconnected and stopped, the manager will stop its own 
+process. This enables the manager to clean up after itself, and prevents rogue processes from
+running in the background.
 
+
+#### Quirks
+
+Be aware that managers introduce some quirks that you should be aware of:
+
+- Managers and hosts are pooled based on the path to your config file. If you open a python shell 
+  which triggers a connection to a host, the manager will not stop the host until your shell has 
+  exited.
+
+  If you are running a server and a python shell which have both connected to the same host, the 
+  manager will not stop the host until both processes have exited.
 - Managed hosts can persist after their config file has changed.
   
-  To force a restart, call the `restart` method of a `JSHost` instance. For example
+  To force a restart, call the `restart` method of a managed `JSHost` instance. For example
   ```python
   from js_host.host import host
   host.restart()
@@ -246,25 +292,29 @@ Be aware that managers have some quirks:
   to inspect their output streams.
 
   To provide some measure of introspection, managed hosts write their output to logfiles which are 
-  stored in your OS's temporary directory. The `logfile` attribute on a managed `JSHost` instance 
-  provides an absolute path to the file. For example
+  stored in your temporary directory. The `logfile` attribute of a `JSHost` instance provides an 
+  absolute path to the file. For example
   ```python
   from js_host.host import host
   print(host.logfile)
   ```
-- If a function triggers an unhandled exception and crashes the host, the host will not be respawned
-  until the python process restarts. 
+- If a managed host encounters an unhandled exception, the host will crash and the python process 
+  will raise errors until you the host is respawned. By design, hosts will not respawn until you
+  have restarted the python process.
 
-  This behaviour is by design - respawning crashed hosts automatically simply hides the underlying 
-  issue. If a crash is detected, exceptions will be raised indicating that you should inspect the
-  logfile.
+  Preventing automatic respawning of crashed hosts simply hides the underlying issue, and makes it
+  difficult to reason about a system's state.
+  
+  If a crash is detected, exceptions will be raised indicating that you should consult the host's
+  logfile to inspect the stack traces produced during the unhandled exception.
+
+
+#### Issues
 
 Be aware that managers have some identified issues:
-- Managers and managed hosts are only compatible with OSX and *nix systems. Tracked in
-  [js-host#7](markfinger/js-host#7)
 
-If you experience unexpected behaviour or you simply want to avoid managers, you are recommended to 
-set the `USE_MANGER` setting to `False`, and start hosts [manually](#usage-in-production).
+- Managers and managed hosts are only compatible with OSX and *nix systems. This issue is tracked 
+  in [js-host#7](markfinger/js-host#7)
 
 
 Settings
@@ -358,17 +408,18 @@ If you want to suppress all output, set it to `js_host.verbosity.SILENT`.
 Default: `js_host.verbosity.PROCESS_START`
 
 
-Django integration
-------------------
+Usage in Django projects
+------------------------
 
-Due to some quirks in how Django's configuration layer works, there are a few helpers
-provided to integrate this library into a django project.
+Due to some quirks in how Django's configuration layer works, there are a few 
+[helpers](https://github.com/markfinger/optional-django] provided to integrate this library 
+into a Django project.
 
-Rather than defining settings by using `js_host.conf.settings.configure(...)`, you
-should place them into a dictionary named `JS_HOST` in your django settings files and add
-`js_host` to your `INSTALLED_APPS` setting. For example
+Rather than defining settings by using `js_host.conf.settings.configure(...)`, you should place 
+them into a dictionary named `JS_HOST` in your settings file and add `js_host` to your 
+`INSTALLED_APPS` setting. For example
 
-```
+```python
 INSTALLED_APPS = (
     # ...
     'js_host',
@@ -380,76 +431,70 @@ JS_HOST = {
 }
 ```
 
-Once django has initialized, it will import `js_host` and trigger the app to start introspecting
-the environment, configuring itself, and connecting to a js-host instance.
+Once django has initialized, it will trigger a phase in which `js_host` introspects django and 
+then continues with the normal startup.
 
 
 Usage in development
 --------------------
 
-In development, you are generally recommended to use managers as they abstract away the overhead 
-of starting and stopping processes. To use a manager to spawn hosts, set `USE_MANAGER` to `True`
-when configuring this library.
+In development, you can take advantage of the manager process to abstract away the overhead of 
+starting and stopping processes. To use a manager to spawn hosts, set the `USE_MANAGER` setting
+to `True`.
 
-If you are writing code to be run on a host, it will typically be useful to have more immediate
-feedback and control of a process. To start and control hosts yourself, refer to 
-[js-host's CLI usage](https://github.com/markfinger/js-host#cli-usage).
-
-If you want access to a REPL which enables you to inspect a JS environment, you can run a host 
-with an [interactive debugger](https://github.com/markfinger/js-host#debugging-hosts)
+If you are writing functions that are on a host, you are recommended to start hosts manually, as 
+it will provide more immediate feedback, as well as easier control of a process. To start a host 
+manually, refer to [js-host's CLI usage](https://github.com/markfinger/js-host#cli-usage).
 
 
 Usage in production
 -------------------
 
-The major difference between development and production is that you are strongly recommended
-to **not** use the manager in a production environment. Ensure that the `USE_MANAGER` setting is
-set to `False` before you start your python processes.
+In a production environment, you are strongly recommended to **not** use the manager. 
+Ensure that the `USE_MANAGER` setting is set to `False` before you start your python process.
 
 In a production environment, you should run your hosts under a supervisor system, such as
 [supervisor](http://supervisord.org/) or [PM2](https://github.com/Unitech/pm2). You can refer 
 to [js-host's CLI usage](https://github.com/markfinger/js-host#cli-usage) for the necessary 
-incantation to spin up a process under a supervisor. It will generally boil down to something 
-like
+incantation to spin up a process. It will generally boil down to something like
 
 ```bash
 node_modules/.bin/js-host host.config.js
 ```
 
+
 ### Logging
 
-By default, js-host instances will only write their logs to stdout and stderr. Refer to js-host's 
-documentation on [logging](https://github.com/markfinger/js-host#logging) if you want to configure
-the logger yourself.
+By default, js-host instances will only write their logs to stdout and stderr. To log to files,
+refer to js-host's [documentation on logging](https://github.com/markfinger/js-host#logging).
+
 
 ### Caching
 
 js-host does not have its own caching layer, but an upstream caching layer can be implemented 
-easily. All communication between the python processes and the js hosts is performed via HTTP. 
-By placing a reverse proxy such as [varnish](https://www.varnish-cache.org/) between your python 
-processes and the host itself, you can massively boost your response times, and reduce the load 
-on the host.
+easily. All communication between the python processes and the js-host processes is performed 
+via HTTP, so placing a reverse proxy such as [varnish](https://www.varnish-cache.org/) between 
+the two can massively boost the performance of your requests.
 
-By default, the urls to connect to a host are inferred from the config. To ensure that all requests
-are sent to another address, define the `URL_OVERRIDE` setting as a complete url to your proxy. For 
-example
+By default, the python layer will infer a host's url from the host's config. If you want to route
+all requests through another address, define the `URL_OVERRIDE` setting. For example
 
 ```python
 js_host.conf.settings.configure(
     # ...
-    URL_OVERRIDE='http://127.0.0.1:1234',
+    URL_OVERRIDE='http://127.0.0.1:8000',
 )
 ```
 
-The python layer will now send all requests to `http://127.0.0.1:1234`.
+The python layer will now send all requests to `http://127.0.0.1:8000`.
 
 
 #### Caching requests
 
 Requests are sent to hosts according to js-host's 
-[endpoint definition](#https://github.com/markfinger/js-host#endpoints).
+[endpoint definition](https://github.com/markfinger/js-host#endpoints).
 
-When the python layer sends requests to functions, it appends a `hash` paramater to the url, 
+When the python layer sends requests to functions, it appends a `hash` paramater to the url 
 which is a `sha1` hash of the serialized data sent to the function. For example, a request to a 
 function named `hello_world` with the data `{'foo': 'bar'}` will be sent as:
 
@@ -457,7 +502,9 @@ function named `hello_world` with the data `{'foo': 'bar'}` will be sent as:
 POST: /function/hello_world?hash=bc4919c6adf7168088eaea06e27a5b23f0f9f9da
 ```
 
-This paramater enables you to cache a specific function's output by the data that was sent in.
+This url convention enables you to easily cache a specific function's output by the data that 
+was sent in.
+
 
 Running the tests
 -----------------
