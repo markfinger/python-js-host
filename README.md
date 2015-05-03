@@ -7,9 +7,8 @@ layer which runs persistent environments built for performance and easy configur
 
 There are a variety of libraries which provide access to JS engines, PyExecJS et al, but they only 
 provide basic functionality, suffer performance problems, and introduce setup overhead. This library 
-hooks in to persistent environments which allow you to use the full power and performance of 
-contemporary JS engines, as well as allowing you to easily take advantage of the enormous JavaScript
-ecosystem.
+enables you to hook in to persistent JS environments which have the full power and performance of 
+modern JS engines which allow you to easily take advantage of the vast JavaScript ecosystem.
 
 In [development](#usage-in-development), a [manager process](#jshostmanager) is provided to simplify
 your workflow by automatically spawning environments in the background.
