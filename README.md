@@ -492,7 +492,7 @@ The python layer will now send all requests to `http://127.0.0.1:8000`.
 #### Caching requests
 
 Requests are sent to hosts according to js-host's 
-[endpoint definition](#https://github.com/markfinger/js-host#endpoints).
+[endpoint definition](https://github.com/markfinger/js-host#endpoints).
 
 When the python layer sends requests to functions, it appends a `hash` paramater to the url 
 which is a `sha1` hash of the serialized data sent to the function. For example, a request to a 
