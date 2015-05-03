@@ -7,26 +7,26 @@ from .exceptions import ConfigError
 class Conf(conf.Conf):
     django_namespace = 'JS_HOST'
 
-    # A path that will resolve to a node binary
-    PATH_TO_NODE = 'node'
-
     # An absolute path to the directory which contains your node_modules directory
     SOURCE_ROOT = os.getcwd()
-
-    # A path to the binary used to control hosts and managers.
-    # Relative paths are joined to SOURCE_ROOT
-    BIN_PATH = os.path.join('node_modules', '.bin', 'js-host')
 
     # A path to a default config file used for hosts and managers.
     # Relative paths are joined to SOURCE_ROOT
     CONFIG_FILE = 'host.config.js'
 
-    # How long functions will wait for a response before raising errors
-    FUNCTION_TIMEOUT = 10.0  # 10 seconds
-
     # Indicates that a manager should be used to spawn host instances
     # DO *NOT* USE THE MANAGER IN PRODUCTION
     USE_MANAGER = False
+
+    # A path that will resolve to a node binary
+    PATH_TO_NODE = 'node'
+
+    # A path to the binary used to control hosts and managers.
+    # Relative paths are joined to SOURCE_ROOT
+    BIN_PATH = os.path.join('node_modules', '.bin', 'js-host')
+
+    # How long functions will wait for a response before raising errors
+    FUNCTION_TIMEOUT = 10.0  # 10 seconds
 
     # If True, attempt to connect once js_host has been configured
     CONNECT_ONCE_CONFIGURED = True

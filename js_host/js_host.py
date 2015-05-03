@@ -27,7 +27,7 @@ class JSHost(BaseServer):
             else:
                 self.config_file = self.manager.get_path_to_config_file()
 
-            status = self.manager.fetch_host_status(self.get_path_to_config_file())
+            status = self.manager.request_host_status(self.get_path_to_config_file())
             if status['started']:
                 self.status = json.loads(status['host']['output'])
                 self.logfile = status['host']['logfile']
@@ -38,7 +38,7 @@ class JSHost(BaseServer):
         if not self.manager:
             raise NotImplementedError('{} must be started manually'.format(self.get_name()))
 
-        status = self.manager.fetch_host_status(self.get_path_to_config_file())
+        status = self.manager.request_host_status(self.get_path_to_config_file())
 
         if status['started']:
             raise ProcessError('{} has already started'.format(self.get_name()))

@@ -1,9 +1,8 @@
 import json
-from js_host.exceptions import ConnectionError
 from js_host.js_host import JSHost
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from .base_js_host_tests import BaseJSHostTests
-from .utils import start_host_process, stop_host_process
+from .utils import start_host_process, stop_host_process, start_proxy, stop_proxy
 
 
 class TestJSHost(BaseJSHostTests):
@@ -63,3 +62,31 @@ class TestJSHost(BaseJSHostTests):
     def test_raises_on_start_or_stop_calls(self):
         self.assertRaises(NotImplementedError, self.host.start)
         self.assertRaises(NotImplementedError, self.host.stop)
+
+    def test_proxied_host(self):
+        proxy = start_proxy()
+
+        proxied_host = JSHost(config_file=self.base_js_host_config_file)
+        proxied_host.url_override = 'http://127.0.0.1:8000'
+
+        proxied_host.connect()
+
+        self.assertEqual(proxied_host.get_status(), self.host.get_status())
+
+        self.assertEqual(proxied_host.get_url('status'), 'http://127.0.0.1:8000/status')
+
+        self.assertEqual(proxied_host.request_status(), self.host.request_status())
+
+        count = self.host.send_json_request('function/counter').text
+        proxied_count = proxied_host.send_json_request('function/counter').text
+        self.assertEqual(int(proxied_count), int(count) + 1)
+
+        self.host.send_json_request('function/counter')
+        self.host.send_json_request('function/counter')
+
+        proxied_count = proxied_host.send_json_request('function/counter').text
+        self.assertEqual(int(proxied_count), int(count) + 4)
+
+        stop_proxy(proxy)
+
+

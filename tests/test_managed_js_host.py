@@ -118,7 +118,7 @@ class TestManagedJSHost(BaseJSHostTests):
         self.assertEqual(port, self.host.get_config()['port'])
 
         # Ensure the same logfile is used
-        host_status = self.manager.fetch_host_status(self.host.get_path_to_config_file())
+        host_status = self.manager.request_host_status(self.host.get_path_to_config_file())
         self.assertEqual(host_status['host']['logfile'], logfile)
         self.assertEqual(logfile, self.host.logfile)
 

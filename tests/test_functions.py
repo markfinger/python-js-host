@@ -51,7 +51,7 @@ class TestFunctions(unittest.TestCase):
 
     def test_generate_key(self):
         self.assertEqual(
-            self.echo.generate_key('foo'),
+            self.echo.generate_hash('foo'),
             '0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33',
         )
 

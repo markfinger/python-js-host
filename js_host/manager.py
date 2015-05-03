@@ -62,7 +62,7 @@ class JSHostManager(BaseServer):
     def restart(self):
         raise NotImplementedError()
 
-    def fetch_host_status(self, config_file):
+    def request_host_status(self, config_file):
         res = self.send_json_request('host/status', data={'config': config_file})
 
         if res.status_code != 200:

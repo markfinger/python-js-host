@@ -120,13 +120,13 @@ class Function(object):
         return json.dumps(data, cls=JSONEncoder)
 
     @staticmethod
-    def generate_key(content):
+    def generate_hash(content):
         content = content.encode('utf-8')
         return hashlib.sha1(content).hexdigest()
 
     def generate_params(self, serialized_data, data):
         return {
-            'key': self.generate_key(serialized_data)
+            'hash': self.generate_hash(serialized_data)
         }
 
     def get_timeout(self):

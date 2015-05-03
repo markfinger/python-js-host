@@ -104,7 +104,7 @@ class TestManager(unittest.TestCase):
         self.assertFalse(host1.is_running())
         self.assertTrue(manager.is_running())
 
-        data = manager.fetch_host_status(host1.get_path_to_config_file())
+        data = manager.request_host_status(host1.get_path_to_config_file())
         self.assertFalse(data['started'])
 
         self.assertTrue(manager.is_running())
