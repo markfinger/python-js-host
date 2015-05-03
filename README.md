@@ -66,7 +66,7 @@ npm init
 Install the `js-host` JavaScript library with
 
 ```bash
-npm install js-host@0.11 --save
+npm install --save js-host@0.11
 ```
 
 Create a file named `host.config.js` and insert
@@ -91,7 +91,7 @@ settings.configure(USE_MANAGER=True)
 ```
 
 If everything went ok, you should see some output as the manager process spins up and then spawns a host 
-which runs an environment using your `host.config.js` file.
+which using your `host.config.js` file.
 
 In the same python shell, run the following
 
@@ -110,6 +110,23 @@ hello_world.call(name='Foo')
 
 Settings
 --------
+
+Define you settings by importing `js_host.conf.settings` and calling its `configure` method
+with keyword arguments matching the setting that you want to define. For example
+
+```python
+from js_host.conf import settings
+
+settings.configure(
+    SOURCE_ROOT='/path/to/your/project',
+    USE_MANAGER=True,
+)
+```
+
+Note: if you are using this library in a Django project, settings should be placed into your
+settings files. Please refer to the [usage in Django projects](#usage-in-django-projects) 
+section of the documentation.
+
 
 ### SOURCE_ROOT
 
@@ -203,7 +220,7 @@ Usage in Django projects
 ------------------------
 
 Due to some quirks in how Django's configuration layer works, there are a few 
-[helpers](https://github.com/markfinger/optional-django] provided to integrate this library 
+[helpers](https://github.com/markfinger/optional-django) provided to integrate this library 
 into a Django project.
 
 Rather than defining settings by using `js_host.conf.settings.configure(...)`, you should place 
