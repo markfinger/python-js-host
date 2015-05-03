@@ -18,7 +18,7 @@ class BaseServer(object):
     path_to_node = None
     source_root = None
     config_file = None
-    url_override = settings.URL_OVERRIDE
+    root_url = settings.ROOT_URL
 
     # Defined by subclasses
     expected_type_name = None
@@ -94,7 +94,7 @@ class BaseServer(object):
         return os.path.join(self.source_root, self.config_file)
 
     def get_name(self):
-        address = self.url_override
+        address = self.root_url
 
         if not address:
             config = self.get_config()
@@ -142,7 +142,7 @@ class BaseServer(object):
         return self.get_status()['config']
 
     def get_url(self, endpoint=None):
-        url = self.url_override
+        url = self.root_url
 
         if not url:
             config = self.get_config()

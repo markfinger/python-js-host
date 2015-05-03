@@ -67,7 +67,7 @@ class TestJSHost(BaseJSHostTests):
         proxy = start_proxy()
 
         proxied_host = JSHost(config_file=self.base_js_host_config_file)
-        proxied_host.url_override = 'http://127.0.0.1:8000'
+        proxied_host.root_url = 'http://127.0.0.1:8000'
 
         proxied_host.connect()
 

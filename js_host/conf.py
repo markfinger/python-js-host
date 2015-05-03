@@ -32,7 +32,7 @@ class Conf(conf.Conf):
     CONNECT_ONCE_CONFIGURED = True
 
     # An override for the root url used to send requests to a host.
-    URL_OVERRIDE = None
+    ROOT_URL = None
 
     # How verbose js-host should be about its actions
     VERBOSITY = PROCESS_START
@@ -40,16 +40,16 @@ class Conf(conf.Conf):
     def configure(self, **kwargs):
         super(Conf, self).configure(**kwargs)
 
-        if self.URL_OVERRIDE:
+        if self.ROOT_URL:
             if self.USE_MANAGER:
                 raise ConfigError(
-                    'The URL_OVERRIDE can not be used with USE_MANAGER set to True. If you want to run a manager at a '
-                    'different address, you should define the `address` and `port` properties in your config file'
+                    'The ROOT_URL can not defined if USE_MANAGER is set to True. If you want to run a manager at a '
+                    'different address or port, you should define the `address` and `port` properties in your config '
+                    'file'
                 )
-            if self.URL_OVERRIDE.endswith('/'):
+            if self.ROOT_URL.endswith('/'):
                 raise ConfigError(
-                    'The URL_OVERRIDE must not end in a slash. It should be an address in the format '
-                    'http://127.0.0.1:8000'
+                    'The ROOT_URL must not end in a slash. It should be an address in the format http://127.0.0.1:8000'
                 )
 
         if self.CONNECT_ONCE_CONFIGURED:
