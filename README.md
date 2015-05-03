@@ -387,30 +387,25 @@ the environment, configuring itself, and connecting to a js-host instance.
 Usage in development
 --------------------
 
-In development, you are generally recommended to use managers as they abstract away the overhead 
-of starting and stopping processes. To use a manager to spawn hosts, set `USE_MANAGER` to `True`
-when configuring this library.
+In development, you can take advantage of the manager process to abstract away the overhead of 
+starting and stopping processes. To use a manager to spawn hosts, set the `USE_MANAGER` setting
+to `True`.
 
-If you are writing code to be run on a host, it will typically be useful to have more immediate
-feedback and control of a process. To start and control hosts yourself, refer to 
+If you are writing code to be run on a host, you are recommended to start hosts manually, so that
+you have more immediate feedback and control of a process. To start a host manually, refer to 
 [js-host's CLI usage](https://github.com/markfinger/js-host#cli-usage).
-
-If you want access to a REPL which enables you to inspect a JS environment, you can run a host 
-with an [interactive debugger](https://github.com/markfinger/js-host#debugging-hosts)
 
 
 Usage in production
 -------------------
 
-The major difference between development and production is that you are strongly recommended
-to **not** use the manager in a production environment. Ensure that the `USE_MANAGER` setting is
-set to `False` before you start your python processes.
+In a production environment, you are strongly recommended to **not** use the manager. 
+Ensure that the `USE_MANAGER` setting is set to `False` before you start your python process.
 
 In a production environment, you should run your hosts under a supervisor system, such as
 [supervisor](http://supervisord.org/) or [PM2](https://github.com/Unitech/pm2). You can refer 
 to [js-host's CLI usage](https://github.com/markfinger/js-host#cli-usage) for the necessary 
-incantation to spin up a process under a supervisor. It will generally boil down to something 
-like
+incantation to spin up a process. It will generally boil down to something like
 
 ```bash
 node_modules/.bin/js-host host.config.js
@@ -418,30 +413,27 @@ node_modules/.bin/js-host host.config.js
 
 ### Logging
 
-By default, js-host instances will only write their logs to stdout and stderr. Refer to js-host's 
-documentation on [logging](https://github.com/markfinger/js-host#logging) if you want to configure
-the logger yourself.
+By default, js-host instances will only write their logs to stdout and stderr. If you want to log to
+files, refer to js-host's documentation on [logging](https://github.com/markfinger/js-host#logging).
 
 ### Caching
 
 js-host does not have its own caching layer, but an upstream caching layer can be implemented 
-easily. All communication between the python processes and the js hosts is performed via HTTP. 
-By placing a reverse proxy such as [varnish](https://www.varnish-cache.org/) between your python 
-processes and the host itself, you can massively boost your response times, and reduce the load 
-on the host.
+easily. All communication between the python processes and the js hosts is performed via HTTP, 
+so placing a reverse proxy such as [varnish](https://www.varnish-cache.org/) inbetween can 
+massively boost your response times.
 
-By default, the urls to connect to a host are inferred from the config. To ensure that all requests
-are sent to another address, define the `URL_OVERRIDE` setting as a complete url to your proxy. For 
-example
+By default, the python layer will infer a host's url from the host's config. If you want to route
+all requests through another address, define the `URL_OVERRIDE` setting. For example
 
 ```python
 js_host.conf.settings.configure(
     # ...
-    URL_OVERRIDE='http://127.0.0.1:1234',
+    URL_OVERRIDE='http://127.0.0.1:8000',
 )
 ```
 
-The python layer will now send all requests to `http://127.0.0.1:1234`.
+The python layer will now send all requests to `http://127.0.0.1:8000`.
 
 
 #### Caching requests
