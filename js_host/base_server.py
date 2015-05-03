@@ -18,6 +18,7 @@ class BaseServer(object):
     path_to_node = None
     source_root = None
     config_file = None
+    url_override = settings.URL_OVERRIDE
 
     # Defined by subclasses
     expected_type_name = None
@@ -93,11 +94,13 @@ class BaseServer(object):
         return os.path.join(self.source_root, self.config_file)
 
     def get_name(self):
-        config = self.get_config()
-        return '{} [{}]'.format(
-            type(self).__name__,
-            '{}:{}'.format(config['address'], config['port'])
-        )
+        address = self.url_override
+
+        if not address:
+            config = self.get_config()
+            address = '{}:{}'.format(config['address'], config['port'])
+
+        return '{} [{}]'.format(type(self).__name__, address)
 
     def get_path_to_bin(self):
         if os.path.isabs(settings.BIN_PATH):
@@ -139,10 +142,17 @@ class BaseServer(object):
         return self.get_status()['config']
 
     def get_url(self, endpoint=None):
-        config = self.get_config()
-        return 'http://{address}:{port}{sep}{endpoint}'.format(
-            address=config['address'],
-            port=config['port'],
+        url = self.url_override
+
+        if not url:
+            config = self.get_config()
+            url = 'http://{address}:{port}'.format(
+                address=config['address'],
+                port=config['port'],
+            )
+
+        return '{url}{sep}{endpoint}'.format(
+            url=url,
             sep='/' if endpoint else '',
             endpoint=endpoint or '',
         )

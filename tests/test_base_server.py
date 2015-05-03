@@ -27,6 +27,7 @@ class TestBaseServer(unittest.TestCase):
         self.assertEqual(self.server.source_root, settings.SOURCE_ROOT)
         self.assertIsNotNone(self.server.status)
         self.assertIsInstance(self.server.status, dict)
+        self.assertIsNone(self.server.url_override)
 
     def test_can_read_in_config(self):
         base_server_config = self.server.read_config_file(base_server_config_file)
@@ -39,6 +40,13 @@ class TestBaseServer(unittest.TestCase):
     def test_can_produce_url_to_itself(self):
         self.assertEqual(self.server.get_url(), 'http://127.0.0.1:9876')
         self.assertEqual(self.server.get_url('some/endpoint'), 'http://127.0.0.1:9876/some/endpoint')
+
+    def test_can_use_an_override_when_generating_urls(self):
+        self.assertIsNone(self.server.url_override)
+        self.server.url_override = 'http://123.456.789.0:1234'
+        self.assertEqual(self.server.get_url(), 'http://123.456.789.0:1234')
+        self.assertEqual(self.server.get_url('some/endpoint'), 'http://123.456.789.0:1234/some/endpoint')
+        self.server.url_override = None
 
     def test_can_request_status_safely(self):
         self.assertIsNone(self.server.request_status())
