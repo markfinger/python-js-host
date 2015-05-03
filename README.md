@@ -10,10 +10,28 @@ an [opinionated JavaScript layer](https://github.com/markfinger/js-host) which r
 built for performance and easy configuration.
 
 In [development](#usage-in-development), a [manager process](#jshostmanager) is provided to simplify
-development by automatically spawning hosts in the background.
+your workflow by automatically spawning hosts in the background.
 
 In [production](#usage-in-production), the same codebase is used to connect to environments which you 
 can easily run under your own supervisor process.
+
+- Installation
+- Quick start
+- Settings
+- Usage in Django projects
+- Usage in development
+- Usage in production
+  - Logging
+  - Caching
+    - Caching requests
+- API
+  - Function
+  - JSHost
+  - JSHostManager
+    - Under the hood
+    - Quirks
+    - Issues
+- Running the tests
 
 
 Installation
@@ -23,11 +41,11 @@ Installation
 pip install js-host
 ```
 
-js-host requires access to a [node](https://nodejs.org) or [io.js](https://iojs.org/) binary.
+js-host requires access to a `node` binary provided by [Node.js](https://nodejs.org) or [io.js](https://iojs.org/).
 
-On OSX you can install node with `brew install node`. 
+On OSX you can install node with `brew install node`.
 
-On Linux you can install node with `apt-get install nodejs` or a with a comparable command specific
+On Linux you can install node with `apt-get install nodejs` or a comparable command specific
 to your distribution's package manager.
 
 
