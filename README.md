@@ -259,14 +259,14 @@ the manager that any hosts spawned are no longer required. Once a spawned host's
 all closed, the manager waits 5 seconds for any new connections to be opened, before it stops the 
 host's process.
 
-The connection/disconnection method enables your python process to hook in to persistent JS
+This connect/disconnect method enables your python process to hook in to persistent JS
 environments which survive even when your python process has restarted. Maintaining persistent
 environments enables you to integrate JS technologies which have a high startup cost that should 
 only be incurred once. A typical use-case where this optimisation provides massive performance 
-improvements is integrating a compiler - such as webpack or browserify - which have a massive 
+improvements is integrating a compiler - such as webpack or browserify - which have a sizable 
 startup overhead as they parse all of your files.
 
-Once all of a manager's hosts have been disconnected and stopped, the manager will stop its own 
+When all of a manager's hosts have been disconnected and stopped, the manager will stop its own 
 process. This enables the manager to clean up after itself, and prevents rogue processes from
 running in the background.
 
@@ -283,7 +283,7 @@ Be aware that managers introduce some quirks that you should be aware of:
   manager will not stop the host until both processes have exited.
 - Managed hosts can persist after their config file has changed.
   
-  To force a restart, call the `restart` method of a `JSHost` instance. For example
+  To force a restart, call the `restart` method of a managed `JSHost` instance. For example
   ```python
   from js_host.host import host
   host.restart()
@@ -299,13 +299,14 @@ Be aware that managers introduce some quirks that you should be aware of:
   print(host.logfile)
   ```
 - If a managed host encounters an unhandled exception, the host will crash and the python process 
-  will raise errors until you have restarted the python process.
+  will raise errors until you the host is respawned. By design, hosts will not respawn until you
+  have restarted the python process.
 
-  This behaviour is by design - respawning crashed hosts automatically simply hides the underlying 
-  issue.
+  Preventing automatic respawning of crashed hosts simply hides the underlying issue, and makes it
+  difficult to reason about a system's state.
   
-  If a crash is detected, exceptions will be raised indicating that you should inspect the
-  logfile.
+  If a crash is detected, exceptions will be raised indicating that you should consult the host's
+  logfile to inspect the stack traces produced during the unhandled exception.
 
 
 #### Issues
