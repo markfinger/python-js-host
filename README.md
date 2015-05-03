@@ -123,7 +123,8 @@ settings.configure(
 )
 ```
 
-Note: if you are using this library in a Django project, please refer to the [usage in Django projects](#usage-in-django-projects) section of the documentation.
+Note: if you are using this library in a Django project, please refer to the
+[usage in Django projects](#usage-in-django-projects) section of the documentation.
 
 
 ### SOURCE_ROOT
@@ -185,8 +186,8 @@ than runtime. It also enables connections to managed hosts to be preserved betwe
 restarts of your python process.
 
 If you want to run multiple hosts and/or control the connection process, set this to
-`False`, but be aware that managed hosts may not preserve connections when your python process 
-restarts.
+`False`, but be aware that managed hosts may not preserve connections when your python
+process restarts.
 
 Default: `True`
 
@@ -219,9 +220,9 @@ Due to some quirks in how Django's configuration layer works, there are a few
 [helpers](https://github.com/markfinger/optional-django) provided to integrate this library 
 into a Django project.
 
-Rather than defining settings by using `js_host.conf.settings.configure(...)`, you should place 
-them into a dictionary named `JS_HOST` in your settings file and add `js_host` to your 
-`INSTALLED_APPS` setting. For example
+Rather than defining settings by using `js_host.conf.settings.configure(...)`, you should
+place  them into a dictionary named `JS_HOST` in your settings file and add `js_host` to
+your `INSTALLED_APPS` setting. For example
 
 ```python
 INSTALLED_APPS = (
@@ -403,8 +404,7 @@ host.is_running()
 host.connect()
 ```
 
-If you are using the manager to control your hosts, the following utils are also available on 
-`JSHost` objects
+If you are using the manager to control your hosts, the following utils are also available
 
 ```python
 from js_host.host import host
@@ -425,6 +425,7 @@ host.stop()
 host.restart()
 ```
 
+
 ### JSHostManager
 
 `js_host.manager.JSHostManager` objects provide an interface to a detached process which runs 
@@ -437,9 +438,9 @@ and logging should be left to production environments.
 
 To allow a manager to spawn instances automatically, set the `USE_MANAGER` setting to `True`.
 
-If you writting functions to be used on hosts you are recommended not to use a manager. Instead
-you should manually start hosts by referring to 
-[js-host's CLI usage](https://github.com/markfinger/js-host#cli-usage).
+If you are writing functions to be used on hosts, you will receive more immediate feedback by
+using hosts that you have manually started yourself. Refer to
+[js-host's CLI usage](https://github.com/markfinger/js-host#cli-usage) to manually start a host.
 
 Note: managers should only be used in development environments. Do **not** use the manager in 
 production. Please refer to the [usage in production](#usage-in-production) section before 
