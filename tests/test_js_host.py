@@ -1,5 +1,6 @@
 import json
 from js_host.js_host import JSHost
+import requests
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from .base_js_host_tests import BaseJSHostTests
 from .utils import start_host_process, stop_host_process, start_proxy, stop_proxy
@@ -64,7 +65,13 @@ class TestJSHost(BaseJSHostTests):
         self.assertRaises(NotImplementedError, self.host.stop)
 
     def test_proxied_host(self):
+        self.assertRaises(RequestsConnectionError, requests.get, 'http://127.0.0.1:8000/status')
+
         proxy = start_proxy()
+
+        data = requests.get('http://127.0.0.1:8000/status').json()
+
+        self.assertEqual(data['config']['port'], 56789)
 
         proxied_host = JSHost(config_file=self.base_js_host_config_file)
         proxied_host.root_url = 'http://127.0.0.1:8000'
@@ -88,5 +95,7 @@ class TestJSHost(BaseJSHostTests):
         self.assertEqual(int(proxied_count), int(count) + 4)
 
         stop_proxy(proxy)
+
+        self.assertRaises(RequestsConnectionError, requests.get, 'http://127.0.0.1:8000/status')
 
 
