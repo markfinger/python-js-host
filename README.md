@@ -15,23 +15,27 @@ your workflow by automatically spawning hosts in the background.
 In [production](#usage-in-production), the same codebase is used to connect to environments which you 
 can easily run under your own supervisor process.
 
-- Installation
-- Quick start
-- Settings
-- Usage in Django projects
-- Usage in development
-- Usage in production
-  - Logging
-  - Caching
-    - Caching requests
-- API
-  - Function
-  - JSHost
-  - JSHostManager
-    - Under the hood
-    - Quirks
-    - Issues
-- Running the tests
+
+Documentation
+-------------
+
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Settings](#settings)
+- [Usage in Django projects](#usage-in-django-projects)
+- [Usage in development](#usage-in-development)
+- [Usage in production](#usage-in-production)
+  - [Logging](#logging)
+  - [Caching](#caching)
+    - [Caching requests](#caching-requests)
+- [API](#api)
+  - [Function](#function)
+  - [JSHost](#jshost)
+  - [JSHostManager](#jshostmanager)
+    - [Under the hood](#under-the-hood)
+    - [Quirks](#quirks)
+    - [Issues](#issues)
+- [Running the tests](#running-the-tests)
 
 
 Installation
@@ -403,15 +407,16 @@ If you want to suppress all output, set it to `js_host.verbosity.SILENT`.
 Default: `js_host.verbosity.PROCESS_START`
 
 
-Django integration
-------------------
+Usage in Django projects
+------------------------
 
-Due to some quirks in how Django's configuration layer works, there are a few helpers
-provided to integrate this library into a django project.
+Due to some quirks in how Django's configuration layer works, there are a few 
+[helpers](https://github.com/markfinger/optional-django] provided to integrate this library 
+into a Django project.
 
-Rather than defining settings by using `js_host.conf.settings.configure(...)`, you
-should place them into a dictionary named `JS_HOST` in your django settings files and add
-`js_host` to your `INSTALLED_APPS` setting. For example
+Rather than defining settings by using `js_host.conf.settings.configure(...)`, you should place 
+them into a dictionary named `JS_HOST` in your settings file and add `js_host` to your 
+`INSTALLED_APPS` setting. For example
 
 ```python
 INSTALLED_APPS = (
@@ -425,8 +430,8 @@ JS_HOST = {
 }
 ```
 
-Once django has initialized, it will import `js_host` and trigger the app to start introspecting
-the environment, configuring itself, and connecting to a js-host instance.
+Once django has initialized, it will trigger a phase in which `js_host` introspects django and 
+then continues with the normal startup.
 
 
 Usage in development
@@ -436,9 +441,9 @@ In development, you can take advantage of the manager process to abstract away t
 starting and stopping processes. To use a manager to spawn hosts, set the `USE_MANAGER` setting
 to `True`.
 
-If you are writing code to be run on a host, you are recommended to start hosts manually, so that
-you have more immediate feedback and control of a process. To start a host manually, refer to 
-[js-host's CLI usage](https://github.com/markfinger/js-host#cli-usage).
+If you are writing functions that are on a host, you are recommended to start hosts manually, as 
+it will provide more immediate feedback, as well as easier control of a process. To start a host 
+manually, refer to [js-host's CLI usage](https://github.com/markfinger/js-host#cli-usage).
 
 
 Usage in production
@@ -456,17 +461,19 @@ incantation to spin up a process. It will generally boil down to something like
 node_modules/.bin/js-host host.config.js
 ```
 
+
 ### Logging
 
-By default, js-host instances will only write their logs to stdout and stderr. If you want to log to
-files, refer to js-host's documentation on [logging](https://github.com/markfinger/js-host#logging).
+By default, js-host instances will only write their logs to stdout and stderr. To log to files,
+refer to js-host's [documentation on logging](https://github.com/markfinger/js-host#logging).
+
 
 ### Caching
 
 js-host does not have its own caching layer, but an upstream caching layer can be implemented 
-easily. All communication between the python processes and the js hosts is performed via HTTP, 
-so placing a reverse proxy such as [varnish](https://www.varnish-cache.org/) inbetween can 
-massively boost your response times.
+easily. All communication between the python processes and the js-host processes is performed 
+via HTTP, so placing a reverse proxy such as [varnish](https://www.varnish-cache.org/) between 
+the two can massively boost the performance of your requests.
 
 By default, the python layer will infer a host's url from the host's config. If you want to route
 all requests through another address, define the `URL_OVERRIDE` setting. For example
@@ -486,7 +493,7 @@ The python layer will now send all requests to `http://127.0.0.1:8000`.
 Requests are sent to hosts according to js-host's 
 [endpoint definition](#https://github.com/markfinger/js-host#endpoints).
 
-When the python layer sends requests to functions, it appends a `hash` paramater to the url, 
+When the python layer sends requests to functions, it appends a `hash` paramater to the url 
 which is a `sha1` hash of the serialized data sent to the function. For example, a request to a 
 function named `hello_world` with the data `{'foo': 'bar'}` will be sent as:
 
@@ -494,7 +501,9 @@ function named `hello_world` with the data `{'foo': 'bar'}` will be sent as:
 POST: /function/hello_world?hash=bc4919c6adf7168088eaea06e27a5b23f0f9f9da
 ```
 
-This paramater enables you to cache a specific function's output by the data that was sent in.
+This url convention enables you to easily cache a specific function's output by the data that 
+was sent in.
+
 
 Running the tests
 -----------------
