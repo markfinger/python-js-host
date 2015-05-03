@@ -130,9 +130,7 @@ Note: if you are using this library in a Django project, please refer to the [us
 
 An absolute path to the directory which contains your node_modules directory.
 
-This setting must be defined to start either a host or manager.
-
-Default: `None`
+Default: `os.getcwd()  # Your current working directory`
 
 
 ### CONFIG_FILE
@@ -155,14 +153,14 @@ Default: `False`
 
 ### PATH_TO_NODE
 
-A path to a node or io.js binary
+A path to a `node` binary.
 
 Default: `'node'`
 
 
 ### BIN_PATH
 
-A path to the binary used to control hosts and managers.
+A path to the `js-host` binary used to control hosts and managers.
 
 If the path is relative, it is appended to the SOURCE_ROOT setting
 
@@ -179,34 +177,34 @@ Default: `10.0`
 
 ### CONNECT_ONCE_CONFIGURED
 
-Indicates that once `js_host` has been configured, it should attempt to connect to a
+Indicates that once this library has been configured, it should attempt to connect to a
 host.
 
-This setting enables any config or connection errors to be raised during startup,
-rather than during runtime. It also enables connections to managed hosts to be
-preserved between restarts of your python process.
+This setting enables any config or connection errors to be raised during startup rather 
+than runtime. It also enables connections to managed hosts to be preserved between 
+restarts of your python process.
 
-If you want to run multiple hosts and/or control the connection process, set this 
-to `False`. Be aware that if you set it to `False`, managed hosts may not preserve 
-connections when your python process restarts.
+If you want to run multiple hosts and/or control the connection process, set this to
+`False`, but be aware that managed hosts may not preserve connections when your python process 
+restarts.
 
 Default: `True`
 
 
-### URL_OVERRIDE
+### ROOT_URL
 
-Overrides the root url which requests are sent to.
+Overrides the root url which requests are sent to. By default, the root url is inferred from 
+the config that the host generates from your config file and the js-host defaults.
 
-By default, the root url is inferred from the config that the host generates from your file. 
-
-If you want to route requests, set it to a string such as `'http://127.0.0.1:9009'`.
+If you want to route requests manually to a host, set it to a string such as 
+`'http://127.0.0.1:9009'`.
 
 Default: `None`
 
 
 ### VERBOSITY
 
-Indicates how much information the host should print the terminal. By default this
+Indicates how much information the host should print the terminal. By default the library
 will print to the terminal whenever processes are started or connected to.
 
 If you want to suppress all output, set it to `js_host.verbosity.SILENT`.
