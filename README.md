@@ -5,10 +5,9 @@
 Python bindings to a performant JavaScript environment.
 
 There are a variety of libraries which provide access to JS engines, PyExecJS et al, but they only provide 
-basic functionality, suffer performance problems, and introduce setup overhead. 
-
-This library hooks in to an [opinionated JavaScript layer](https://github.com/markfinger/js-host) which 
-runs persistent environments built for performance and easy configuration.
+basic functionality, suffer performance problems, and introduce setup overhead. This library hooks in to 
+an [opinionated JavaScript layer](https://github.com/markfinger/js-host) which runs persistent environments
+built for performance and easy configuration.
 
 In [development](#usage-in-development), a [manager process](#jshostmanager) is provided to simplify
 development by automatically spawning hosts in the background.
@@ -24,12 +23,12 @@ Installation
 pip install js-host
 ```
 
-Note: python-js-host requires access to [node](https://nodejs.org) or [io.js](https://iojs.org/).
+js-host requires access to a [node](https://nodejs.org) or [io.js](https://iojs.org/) binary.
 
 On OSX you can install node with `brew install node`. 
 
-On Linux you can install node with `apt-get install nodejs` or a comparable command with your 
-distribution's package manager.
+On Linux you can install node with `apt-get install nodejs` or a with a comparable command specific
+to your distribution's package manager.
 
 
 Quick start
