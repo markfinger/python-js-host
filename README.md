@@ -115,7 +115,7 @@ module.exports = {
 
 You can call those functions from Python with the following
 
-```
+```python
 from js_host.function import Function
 
 greeter = Function('greeter')
@@ -152,7 +152,7 @@ config files.
 
 If you want to introspect a running host, there are some utils provided to assist you
 
-```
+```python
 from js_host.host import host
 
 # An absolute path to the node binary used to run hosts
@@ -368,7 +368,7 @@ Rather than defining settings by using `js_host.conf.settings.configure(...)`, y
 should place them into a dictionary named `JS_HOST` in your django settings files and add
 `js_host` to your `INSTALLED_APPS` setting. For example
 
-```
+```python
 INSTALLED_APPS = (
     # ...
     'js_host',
