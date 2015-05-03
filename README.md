@@ -10,12 +10,10 @@ hooks to evaluate JavaScript, this library hooks in to an
 [opinionated JavaScript layer](https://github.com/markfinger/js-host) which runs persistent and performant 
 environments built for easy configuration.
 
-In [development](#usage-in-development), a [manager process](#jshostmanager) is provided to reduce your
-integration overheads. The process runs in the background and spawns environments which your python process 
-uses. Once your python process no longer needs the environment, the manager automatically cleans up after itself.
+In [development](#usage-in-development), a [manager process](#jshostmanager) is provided to reduce integration overheads by automatically spawning hosts in the background.
 
 In [production](#usage-in-production), the same codebase is used to connect to environments which you can easily
-spawn under a supervisor.
+run under your own supervisor process.
 
 
 Installation
