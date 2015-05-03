@@ -111,8 +111,8 @@ hello_world.call(name='Foo')
 Settings
 --------
 
-Define you settings by importing `js_host.conf.settings` and calling its `configure` method
-with keyword arguments matching the setting that you want to define. For example
+Settings can be defined by importing `js_host.conf.settings` and calling its `configure` method
+with keyword arguments matching the name of the setting that you want to define. For example
 
 ```python
 from js_host.conf import settings
@@ -123,9 +123,7 @@ settings.configure(
 )
 ```
 
-Note: if you are using this library in a Django project, settings should be placed into your
-settings files. Please refer to the [usage in Django projects](#usage-in-django-projects) 
-section of the documentation.
+Note: if you are using this library in a Django project, please refer to the [usage in Django projects](#usage-in-django-projects) section of the documentation.
 
 
 ### SOURCE_ROOT
