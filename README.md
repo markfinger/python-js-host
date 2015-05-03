@@ -281,16 +281,17 @@ via HTTP, so placing a reverse proxy such as [varnish](https://www.varnish-cache
 the two can massively boost the performance of your requests.
 
 By default, the python layer will infer a host's url from the host's config. If you want to route
-all requests through another address, define the `URL_OVERRIDE` setting. For example
+all requests through another address, define the `ROOT_URL` setting. For example
 
 ```python
 js_host.conf.settings.configure(
     # ...
-    URL_OVERRIDE='http://127.0.0.1:8000',
+    ROOT_URL='http://127.0.0.1:8000',
 )
 ```
 
-The python layer will now send all requests to `http://127.0.0.1:8000`.
+The python layer will now send all requests through `http://127.0.0.1:8000`, rather than connecting
+directly to the host.
 
 
 #### Caching requests
