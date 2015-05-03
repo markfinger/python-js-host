@@ -9,7 +9,7 @@ setup(
         'requests>=2.5.0',
         'optional-django==0.2.1',
     ],
-    description='Python bindings to js-host',
+    description='Python bindings to a performant JavaScript environment',
     long_description='Documentation at https://github.com/markfinger/python-js-host',
     author='Mark Finger',
     author_email='markfinger@gmail.com',
