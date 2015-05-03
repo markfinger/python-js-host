@@ -1,7 +1,7 @@
 import os
 from optional_django import six
-import js_host.conf
 from js_host.function import Function
+import js_host.conf
 
 js_host.conf.settings.configure(USE_MANAGER=True)
 
