@@ -67,6 +67,8 @@ class BaseServer(object):
         if not os.path.exists(self.get_path_to_config_file()):
             raise ConfigError('Config file {} does not exist'.format(self.get_path_to_config_file()))
 
+        self.validate_status()
+
     def get_path_to_config_file(self):
         if os.path.isabs(self.config_file):
             return self.config_file
@@ -233,10 +235,6 @@ class BaseServer(object):
             raise ConfigError('No port has been defined in {}'.format(config))
 
     def connect(self):
-        if not self.has_validated_status:
-            self.validate_status()
-            self.has_validated_status = True
-
         if not self.is_running():
             raise ConnectionError('Cannot connect to {}'.format(self.get_name()))
 
