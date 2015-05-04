@@ -31,6 +31,8 @@ class BaseServer(object):
     version = None
     has_connected = False
 
+    has_validated_status = False
+
     def __init__(self, config_file=None, source_root=None, path_to_node=None):
         if not self.config_file:
             self.config_file = config_file or settings.CONFIG_FILE
@@ -64,29 +66,6 @@ class BaseServer(object):
 
         if not os.path.exists(self.get_path_to_config_file()):
             raise ConfigError('Config file {} does not exist'.format(self.get_path_to_config_file()))
-
-        version = self.get_version().split('.')
-        for i, number in enumerate(self.supported_version):
-            if version[i] != number:
-                raise ConfigError(
-                    'Version {} of the js-host JavaScript library is supported, the system reported {}'.format(
-                        '.'.join(self.supported_version),
-                        self.get_version(),
-                    )
-                )
-
-        type_name = self.get_type_name()
-        if type_name != self.expected_type_name:
-            raise ConfigError('Expected type {} but found {}'.format(self.expected_type_name, type_name))
-
-        # Validate the config file
-        config = self.get_config()
-        if config is None:
-            raise ConfigError('No config has been defined')
-        if 'address' not in config:
-            raise ConfigError('No address has been defined in {}'.format(config))
-        if 'port' not in config:
-            raise ConfigError('No port has been defined in {}'.format(config))
 
     def get_path_to_config_file(self):
         if os.path.isabs(self.config_file):
@@ -229,7 +208,35 @@ class BaseServer(object):
     def restart(self):
         raise NotImplementedError()
 
+    def validate_status(self):
+        version = self.get_version().split('.')
+        for i, number in enumerate(self.supported_version):
+            if version[i] != number:
+                raise ConfigError(
+                    'Version {} of the js-host JavaScript library is supported, the system reported {}'.format(
+                        '.'.join(self.supported_version),
+                        self.get_version(),
+                    )
+                )
+
+        type_name = self.get_type_name()
+        if type_name != self.expected_type_name:
+            raise ConfigError('Expected type {} but found {}'.format(self.expected_type_name, type_name))
+
+        # Validate the config file
+        config = self.get_config()
+        if config is None:
+            raise ConfigError('No config has been defined')
+        if 'address' not in config:
+            raise ConfigError('No address has been defined in {}'.format(config))
+        if 'port' not in config:
+            raise ConfigError('No port has been defined in {}'.format(config))
+
     def connect(self):
+        if not self.has_validated_status:
+            self.validate_status()
+            self.has_validated_status = True
+
         if not self.is_running():
             raise ConnectionError('Cannot connect to {}'.format(self.get_name()))
 
