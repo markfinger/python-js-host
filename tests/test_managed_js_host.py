@@ -1,7 +1,8 @@
 import json
 import os
+import unittest
 from optional_django import six
-from js_host.exceptions import ConnectionError, UnexpectedResponse, ProcessError
+from js_host.exceptions import UnexpectedResponse, ProcessError
 from js_host.manager import JSHostManager
 from js_host.js_host import JSHost
 from .base_js_host_tests import BaseJSHostTests
@@ -9,7 +10,7 @@ from .base_js_host_tests import BaseJSHostTests
 managed_host_lifecycle_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_managed_js_host_lifecycle.host.config.js')
 
 
-class TestManagedJSHost(BaseJSHostTests):
+class TestManagedJSHost(unittest.TestCase, BaseJSHostTests):
     __test__ = True
     manager = None
 
@@ -84,10 +85,10 @@ class TestManagedJSHost(BaseJSHostTests):
 
         host2 = JSHost(manager=manager)
 
+        host2.connect()
+
         self.assertIsInstance(host2.logfile, six.string_types)
         self.assertEqual(host2.logfile, host1.logfile)
-
-        host2.connect()
 
         res = host2.send_json_request('function/test')
         self.assertEqual(res.text, 'test')

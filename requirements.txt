@@ -1,5 +1,6 @@
 requests>=2.5.0
-optional-django==0.2.1
+optional-django==0.3.0
 
 # For testing
 nose==1.3.6
+django

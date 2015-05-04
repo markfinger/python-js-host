@@ -1,10 +1,9 @@
 import os
-import unittest
 from js_host.base_server import BaseServer
 from js_host.conf import settings
 
 
-class BaseJSHostTests(unittest.TestCase):
+class BaseJSHostTests(object):
     """
     A common test suite to be run over a JSHost of various configurations
     """

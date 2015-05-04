@@ -1,12 +1,13 @@
 import json
 from js_host.js_host import JSHost
 import requests
+import unittest
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from .base_js_host_tests import BaseJSHostTests
 from .utils import start_host_process, stop_host_process, start_proxy, stop_proxy
 
 
-class TestJSHost(BaseJSHostTests):
+class TestJSHost(unittest.TestCase, BaseJSHostTests):
     __test__ = True
     process = None
 

@@ -1,8 +1,8 @@
-# Django hook to connect during startup
+# Django hook to configure the host during startup
 
-from .conf import settings
+from django.conf import settings
+from . import conf
 
-if settings.CONNECT_ONCE_CONFIGURED:
-    from .host import host
-    if not host.has_connected:
-        host.connect()
+conf.settings.configure(
+    **getattr(settings, 'JS_HOST', {})
+)

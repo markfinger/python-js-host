@@ -1,3 +1,7 @@
-# Import the settings to ensure they are applied before any tests are
+import sys
 
-import tests.settings
+if 'nosetests' in sys.argv[0]:
+    # Configure settings manually
+    from .settings import JS_HOST
+    from js_host.conf import settings
+    settings.configure(**JS_HOST)

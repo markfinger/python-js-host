@@ -7,7 +7,7 @@ setup(
     packages=['js_host'],
     install_requires=[
         'requests>=2.5.0',
-        'optional-django==0.2.1',
+        'optional-django==0.3.0',
     ],
     description='Python bindings to a performant JavaScript environment',
     long_description='Documentation at https://github.com/markfinger/python-js-host',

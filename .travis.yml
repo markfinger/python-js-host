@@ -4,10 +4,17 @@ python:
   - "2.7"
   - "3.4"
 
+env:
+  - DJANGO_VERSION=1.6.11
+  - DJANGO_VERSION=1.7.7
+  - DJANGO_VERSION=1.8
+
 install:
+  - "npm install -g npm"
   - "cd tests"
   - "npm install"
   - "cd .."
+  - "pip install Django==$DJANGO_VERSION"
   - "pip install -r requirements.txt"
 
-script: ./runtests.sh
+script: ./runtests.py

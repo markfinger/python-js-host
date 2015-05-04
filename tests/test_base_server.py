@@ -64,10 +64,9 @@ class TestBaseServer(unittest.TestCase):
         )
 
     def test_raises_an_error_if_a_config_file_does_not_export_an_object(self):
-        self.assertRaises(
-            ConfigError,
-            self.BaseServerSubclass,
+        server = self.BaseServerSubclass(
             path_to_node=settings.PATH_TO_NODE,
             source_root=settings.SOURCE_ROOT,
             config_file=empty_config_file,
         )
+        self.assertRaises(ConfigError, server.validate_status)

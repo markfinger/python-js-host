@@ -20,5 +20,6 @@ module.exports = {
 				done(null, data.echo);
 			}, 500);
 		}
-	}
+	},
+	disconnectTimeout: 1
 };

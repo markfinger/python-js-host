@@ -5,8 +5,6 @@ from .exceptions import ConfigError
 
 
 class Conf(conf.Conf):
-    django_namespace = 'JS_HOST'
-
     # An absolute path to the directory which contains your node_modules directory
     SOURCE_ROOT = os.getcwd()
 
