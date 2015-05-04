@@ -36,8 +36,6 @@ class Conf(conf.Conf):
     VERBOSITY = PROCESS_START
 
     def configure(self, **kwargs):
-        super(Conf, self).configure(**kwargs)
-
         if self.ROOT_URL:
             if self.USE_MANAGER:
                 raise ConfigError(
@@ -49,6 +47,8 @@ class Conf(conf.Conf):
                 raise ConfigError(
                     'The ROOT_URL must not end in a slash. It should be an address in the format http://127.0.0.1:8000'
                 )
+
+        super(Conf, self).configure(**kwargs)
 
         if self.CONNECT_ONCE_CONFIGURED:
             # Ensure that we raise connection issues during startup, rather than runtime
