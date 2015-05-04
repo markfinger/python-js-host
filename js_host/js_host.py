@@ -25,12 +25,12 @@ class JSHost(BaseServer):
             if 'config_file' in kwargs:
                 self.config_file = kwargs.pop('config_file')
             else:
-                # Reuse the manager's config so that we can avoid spinning up another process
-                # just to read the config file. When a managed host starts or connects, it
-                # overrides the config with the information returned from the manager
                 self.config_file = self.manager.get_path_to_config_file()
-                self.status = copy.deepcopy(self.manager.get_status())
-                self.status['type'] = self.expected_type_name
+
+            data = self.manager.request_host_status(self.get_path_to_config_file())
+            if data['started']:
+                self.status = json.loads(data['host']['output'])
+                self.logfile = data['host']['logfile']
 
         super(JSHost, self).__init__(*args, **kwargs)
 
@@ -69,11 +69,6 @@ class JSHost(BaseServer):
 
     def connect(self):
         if self.manager:
-            data = self.manager.request_host_status(self.get_path_to_config_file())
-            if data['started']:
-                self.status = json.loads(data['host']['output'])
-                self.logfile = data['host']['logfile']
-
             if not self.connection:
                 data = self.manager.open_connection_to_host(self.get_path_to_config_file())
                 self.connection = data['connection']
