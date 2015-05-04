@@ -5,16 +5,12 @@
 Python bindings to [js-host](https://github.com/markfinger/js-host), an opinionated JavaScript 
 layer which runs persistent environments built for performance and easy configuration.
 
-There are a variety of libraries which provide access to JS engines, PyExecJS et al, but they only 
-provide basic functionality, suffer performance problems, and introduce setup overhead. This library 
-enables you to hook in to persistent environments which provide the power and performance of modern
-JS engines, as well as easy access to the vast JS ecosystem.
+There are a variety of libraries which provide low-level access to JS engines - PyExecJS et al - but they 
+tend to suffer from limited functionality and poor performance. This library wraps around modern JS
+platforms to provide a performant and powerful environment that your python process can talk to.
 
-In [development](#usage-in-development), a [manager process](#jshostmanager) is provided to simplify
-your workflow by automatically spawning environments in the background.
-
-In [production](#usage-in-production), the same codebase is used to connect to environments which you 
-can easily run under your own supervisor process.
+To simplify your development workflow, a [manager](#jshostmanager) is provided that will automatically
+spawn hosts in the background, leaving you free to focus on making stuff.
 
 
 Documentation
