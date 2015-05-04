@@ -7,8 +7,8 @@ layer which runs persistent environments built for performance and easy configur
 
 There are a variety of libraries which provide access to JS engines, PyExecJS et al, but they only 
 provide basic functionality, suffer performance problems, and introduce setup overhead. This library 
-enables you to hook in to persistent environments which have the full power, high performance, and vast
-ecosystem offered by modern JS engines.
+enables you to hook in to persistent environments which provide the power and performance of modern
+JS engines, as well as easy access to the vast JS ecosystem.
 
 In [development](#usage-in-development), a [manager process](#jshostmanager) is provided to simplify
 your workflow by automatically spawning environments in the background.
@@ -46,12 +46,9 @@ Installation
 pip install js-host
 ```
 
-js-host requires access to a `node` binary provided by [Node.js](https://nodejs.org) or [io.js](https://iojs.org/).
-
-On OSX you can install node with `brew install node`.
-
-On Linux you can install node with `apt-get install nodejs` or a comparable command specific
-to your distribution's package manager.
+js-host requires access to a `node` binary provided by [Node.js](https://nodejs.org) or 
+[io.js](https://iojs.org/). On OSX you can run `brew install node`. On *nix you can run 
+`apt-get install nodejs` or a comparable command with your distribution's package manager.
 
 
 Quick start
@@ -91,7 +88,7 @@ settings.configure(USE_MANAGER=True)
 ```
 
 If everything went ok, you should see some output as the manager process spins up and then spawns a host 
-which using your `host.config.js` file.
+which uses your `host.config.js` file.
 
 In the same python shell, run the following
 
@@ -105,13 +102,18 @@ hello_world.call()
 hello_world.call(name='Foo')
 ```
 
-:hatched_chick:
+And you should see the following output
+
+```
+Hello, World!
+Hello, Foo!
+```
 
 
 Settings
 --------
 
-Settings can be defined by importing `js_host.conf.settings` and calling its `configure` method
+Settings can be defined by importing `js_host.conf.settings` and calling the `configure` method
 with keyword arguments matching the name of the setting that you want to define. For example
 
 ```python
@@ -123,8 +125,23 @@ settings.configure(
 )
 ```
 
-Note: if you are using this library in a Django project, please refer to the
-[usage in Django projects](#usage-in-django-projects) section of the documentation.
+If you are using js-host in a Django project, add `'js_host'` to your `INSTALLED_APPS`
+
+```python
+INSTALLED_APPS = (
+    # ...
+    'js_host',
+)
+```
+
+And configure js-host by placing a dictionary named `JS_HOST` into your settings files
+
+```python
+JS_HOST = {
+    'SOURCE_ROOT': '/path/to/your/project',
+    'USE_MANAGER': DEBUG,
+}
+```
 
 
 ### SOURCE_ROOT
@@ -211,33 +228,6 @@ will print to the terminal whenever processes are started or connected to.
 If you want to suppress all output, set it to `js_host.verbosity.SILENT`.
 
 Default: `js_host.verbosity.PROCESS_START`
-
-
-Usage in Django projects
-------------------------
-
-Due to some quirks in how Django's configuration layer works, there are a few 
-[helpers](https://github.com/markfinger/optional-django) provided to integrate this library 
-into a Django project.
-
-Rather than defining settings by using `js_host.conf.settings.configure(...)`, you should
-place  them into a dictionary named `JS_HOST` in your settings file and add `js_host` to
-your `INSTALLED_APPS` setting. For example
-
-```python
-INSTALLED_APPS = (
-    # ...
-    'js_host',
-)
-
-JS_HOST = {
-    'SOURCE_ROOT': '/path/to/your/project',
-    'USE_MANAGER': DEBUG,
-}
-```
-
-Once django has initialized, it will trigger a phase in which `js_host` introspects django and 
-then continues with the normal startup.
 
 
 Usage in development
