@@ -8,7 +8,7 @@ from js_host.utils import verbosity
 
 
 def start_proxy():
-    cmd = (settings.PATH_TO_NODE, os.path.join(os.path.dirname(__file__), 'proxy.js'),)
+    cmd = (settings.get_path_to_node(), os.path.join(os.path.dirname(__file__), 'proxy.js'),)
 
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
