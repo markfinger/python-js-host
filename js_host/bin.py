@@ -57,6 +57,8 @@ def spawn_detached_manager(config_file, status=None):
         raise ProcessError(stderr)
 
     stdout = process.stdout.read()
+    stdout = stdout.decode('utf-8')
+
     new_status = json.loads(stdout)
 
     manager.status = new_status
