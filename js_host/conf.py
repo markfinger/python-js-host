@@ -22,7 +22,7 @@ class Conf(conf.Conf):
 
     # A path to the binary used to control hosts and managers.
     # Relative paths are joined to SOURCE_ROOT
-    PATH_TO_BIN = os.path.join('node_modules', '.bin', 'js-host')
+    PATH_TO_BIN = os.path.join('node_modules', 'js-host', 'bin', 'js-host.js')
 
     # How long functions will wait for a response before raising errors
     FUNCTION_TIMEOUT = 10.0  # 10 seconds
