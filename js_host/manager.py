@@ -1,41 +1,13 @@
 import time
-import subprocess
-from optional_django import six
 from .base_server import BaseServer
 from .conf import settings
-from .verbosity import PROCESS_START, PROCESS_STOP
-from .exceptions import ProcessError, UnexpectedResponse
+from .utils import verbosity
+from .exceptions import UnexpectedResponse
 
 
 class JSHostManager(BaseServer):
     expected_type_name = 'Manager'
     read_config_file_params = ('--manager',)
-
-    def start(self):
-        process = subprocess.Popen(
-            (self.path_to_node, self.get_path_to_bin(), self.get_path_to_config_file(), '--manager', '--detached'),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        process.wait()
-
-        stderr = process.stderr.read()
-        if stderr:
-            if six.b('EADDRINUSE') in stderr:
-                raise ProcessError(
-                    (
-                        '{} is attempting to run at an address already in use. To run the process at another address, '
-                        'you can set the `port` property of your host\'s config to a different number. If the problem '
-                        'persists, this is an indication of unstopped processes and/or version mismatches'
-                    ).format(self.get_name())
-                )
-            raise ProcessError(stderr)
-
-        if not self.is_running():
-            raise ProcessError('Failed to start manager')
-
-        if settings.VERBOSITY >= PROCESS_START:
-            print('Started {}'.format(self.get_name()))
 
     def stop(self):
         """
@@ -51,16 +23,13 @@ class JSHostManager(BaseServer):
                 )
             )
 
-        if settings.VERBOSITY >= PROCESS_STOP:
+        if settings.VERBOSITY >= verbosity.PROCESS_STOP:
             print('Stopped {}'.format(self.get_name()))
 
         # The request will end just before the process stops, so there is a tiny
         # possibility of a race condition. We delay as a precaution so that we
         # can be reasonably confident of the system's state.
         time.sleep(0.05)
-
-    def restart(self):
-        raise NotImplementedError()
 
     def request_host_status(self, config_file):
         res = self.send_json_request('host/status', data={'config': config_file})

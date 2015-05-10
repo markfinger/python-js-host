@@ -1,4 +1,4 @@
-# Django hook to configure the host during startup
+# Django configuration hook
 
 from django.conf import settings
 from . import conf

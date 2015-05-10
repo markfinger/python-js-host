@@ -89,7 +89,7 @@ which uses your `host.config.js` file.
 
 In the same python shell, run
 
-```
+```python
 from js_host.function import Function
 
 hello_world = Function('hello_world')
@@ -166,7 +166,7 @@ A path to a `node` binary.
 Default: `'node'`
 
 
-### BIN_PATH
+### PATH_TO_BIN
 
 A path to the `js-host` binary used to control hosts and managers.
 
@@ -215,9 +215,9 @@ Default: `None`
 Indicates how much information the host should print the terminal. By default the library
 will print to the terminal whenever processes are started or connected to.
 
-If you want to suppress all output, set it to `js_host.verbosity.SILENT`.
+If you want to suppress all output, set it to `js_host.utils.verbosity.SILENT`.
 
-Default: `js_host.verbosity.PROCESS_START`
+Default: `js_host.utils.verbosity.PROCESS_START`
 
 
 Usage in development
@@ -344,6 +344,23 @@ Your functions can complete their task either synchronously or asynchronously. O
 has been called, the host assumes that the function has completed and sends a response back to 
 the Python process.
 
+Functions will lazily bind to the `js_host.host.host` singleton unless you override the function's `host`
+`attribute`.
+
+```python
+from js_host.function import Function
+
+greeter = Function('greeter')
+
+greeter.host  # returns `None`
+
+greeter.get_host()  # returns `js_host.host.host`
+
+greeter.host = my_host
+
+greeter.get_host()  # returns `my_host`
+```
+
 For more information on the API and behaviour of functions, refer to the js-host's
 [documentation on functions](https://github.com/markfinger/js-host#functions).
 
@@ -359,14 +376,8 @@ If you want to introspect a host, there are some utils provided
 # Import the host generated from the values in `js_host.conf.settings`
 from js_host.host import host
 
-# An absolute path to the node binary used to run hosts
-host.path_to_node
-
-# An absolute path to the `js-host` library used
-host.get_path_to_bin()
-
-# Returns an absolute path to the config file used by the host
-host.get_path_to_config_file()
+# An absolute path to the config file used by the host
+host.config_file
 
 # Returns a URL which points to the location of the host on your network
 host.get_url()
@@ -395,14 +406,11 @@ host.manager
 # An absolute path to a file that the host writes its logs to
 host.logfile
 
-# Connect to the manager and ask it to spawn a new host using your config file
-host.start()
+# Connect to the manager and ask it to restart the host
+host.restart()
 
 # Connect to the manager and ask it to stop the host
 host.stop()
-
-# Connect to the manager and ask it to restart the host
-host.restart()
 ```
 
 
@@ -419,13 +427,22 @@ and logging should be left to production environments.
 To allow a manager to spawn instances automatically, set the `USE_MANAGER` setting to `True`.
 
 If you are writing functions to be used on hosts, be aware that manually starting hosts will provide
-easier access to the hosts output streams and debugging functionalities. Refer to
+easier access to the hosts output streams and debugging functionality. Refer to
 [js-host's CLI usage](https://github.com/markfinger/js-host#cli-usage) to manually start a host.
 
 Note: managers should only ever be used in development environments. Do **not** use the manager 
 in production. Please refer to the [usage in production](#usage-in-production) section before 
 configuring your environment.
 
+```python
+# The singleton manager and host which are provided by default
+from js_host.host import manager, host
+
+host.manager == manager  # True
+
+# Stops the manager and all managed hosts
+manager.stop()
+```
 
 #### Under the hood
 
@@ -461,9 +478,9 @@ as they parse all of your files.
 
 Be aware that managers introduce some behaviour that you should be aware of:
 
-- Managers and hosts are pooled based on the path to your config file. If you open a python shell 
-  which triggers a connection to a host, the manager will not stop the host until your shell has 
-  exited.
+- Python processes will connect to managed hosts based on the path to your config file. If you
+  open a python shell which triggers a connection to a host, the manager will not stop the host
+  until your shell has exited.
 
   If you are running a server and a python shell which have both connected to the same host, the 
   manager will not stop the host until both processes have exited.

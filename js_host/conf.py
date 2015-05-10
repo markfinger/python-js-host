@@ -1,6 +1,7 @@
+from distutils.spawn import find_executable
 import os
 from optional_django import conf
-from .verbosity import PROCESS_START
+from .utils.verbosity import PROCESS_START
 from .exceptions import ConfigError
 
 
@@ -21,7 +22,7 @@ class Conf(conf.Conf):
 
     # A path to the binary used to control hosts and managers.
     # Relative paths are joined to SOURCE_ROOT
-    BIN_PATH = os.path.join('node_modules', '.bin', 'js-host')
+    PATH_TO_BIN = os.path.join('node_modules', '.bin', 'js-host')
 
     # How long functions will wait for a response before raising errors
     FUNCTION_TIMEOUT = 10.0  # 10 seconds
@@ -34,6 +35,10 @@ class Conf(conf.Conf):
 
     # How verbose js-host should be about its actions
     VERBOSITY = PROCESS_START
+
+    # Flags to indicate that particular values have been checked. They are used
+    # to prevents us from hitting the filesystem repeatedly
+    _validated = {}
 
     def configure(self, **kwargs):
         if self.ROOT_URL:
@@ -55,5 +60,55 @@ class Conf(conf.Conf):
             from .host import host
             if not host.has_connected:
                 host.connect()
+
+    def get_path_to_node(self):
+        path = self.PATH_TO_NODE
+
+        if 'PATH_TO_NODE' not in self._validated and not find_executable(path):
+            raise ConfigError(
+                (
+                    'Executable "{}" does not exist. Please define the PATH_TO_NODE setting in '
+                    'js_host.conf.settings'
+                ).format(path)
+            )
+        self._validated['PATH_TO_NODE'] = True
+
+        return path
+
+    def get_source_root(self):
+        path = self.SOURCE_ROOT
+
+        if 'SOURCE_ROOT' not in self._validated and not os.path.isdir(path):
+            raise ConfigError('Source root {} does not exist or is not a directory'.format(path))
+        self._validated['SOURCE_ROOT'] = True
+
+        return path
+
+    def get_path_to_bin(self):
+        if os.path.isabs(self.PATH_TO_BIN):
+            path = self.PATH_TO_BIN
+        else:
+            path = os.path.join(self.SOURCE_ROOT, self.PATH_TO_BIN)
+
+        if 'PATH_TO_BIN' not in self._validated and not os.path.isfile(path):
+            raise ConfigError('js-host binary {} does not exist'.format(path))
+        self._validated['PATH_TO_BIN'] = True
+
+        return path
+
+    def get_config_file(self):
+        if os.path.isabs(self.CONFIG_FILE):
+            path = self.CONFIG_FILE
+        else:
+            path = os.path.join(self.SOURCE_ROOT, self.CONFIG_FILE)
+
+        if 'CONFIG_FILE' not in self._validated and not os.path.isfile(path):
+            raise ConfigError('Config file {} does not exist'.format(path))
+        self._validated['CONFIG_FILE'] = True
+
+        return path
+
+    def get_root_url(self):
+        return self.ROOT_URL
 
 settings = Conf()

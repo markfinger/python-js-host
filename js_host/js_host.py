@@ -1,76 +1,45 @@
-import copy
-import json
 import atexit
 import sys
-from optional_django import six
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from .conf import settings
-from .exceptions import ProcessError, ConfigError
-from .verbosity import DISCONNECT, PROCESS_START, PROCESS_STOP
+from .exceptions import ProcessError
+from .utils import six, verbosity
 from .base_server import BaseServer
 
 
 class JSHost(BaseServer):
     expected_type_name = 'Host'
 
-    # Generated at runtime for managed hosts
     manager = None
     logfile = None
     connection = None
 
-    def __init__(self, *args, **kwargs):
-        if 'manager' in kwargs:
-            self.manager = kwargs.pop('manager')
-
-            if 'config_file' in kwargs:
-                self.config_file = kwargs.pop('config_file')
-            else:
-                self.config_file = self.manager.get_path_to_config_file()
-
-            data = self.manager.request_host_status(self.get_path_to_config_file())
-            if data['started']:
-                self.status = json.loads(data['host']['output'])
-                self.logfile = data['host']['logfile']
+    def __init__(self, manager=None, logfile=None, *args, **kwargs):
+        self.manager = manager
+        self.logfile = logfile
 
         super(JSHost, self).__init__(*args, **kwargs)
 
-    def start(self):
-        if not self.manager:
-            raise NotImplementedError('{} must be started manually'.format(self.get_name()))
-
-        status = self.manager.request_host_status(self.get_path_to_config_file())
-
-        if status['started']:
-            raise ProcessError('{} has already started'.format(self.get_name()))
-
-        data = self.manager.start_host(self.get_path_to_config_file())
-
-        self.status = json.loads(data['output'])
-        self.logfile = data['logfile']
-
-        if settings.VERBOSITY >= PROCESS_START:
-            print('Started {}'.format(self.get_name()))
-
-    def stop(self, timeout=None, stop_manager_if_last=None):
+    def stop(self):
         if not self.manager:
             raise NotImplementedError('{} must be stopped manually'.format(self.get_name()))
 
-        self.manager.stop_host(self.get_path_to_config_file())
+        self.manager.stop_host(self.config_file)
 
-        if settings.VERBOSITY >= PROCESS_STOP:
+        if settings.VERBOSITY >= verbosity.PROCESS_STOP:
             print('Stopped {}'.format(self.get_name()))
 
     def restart(self):
         if not self.manager:
             raise NotImplementedError('{} must be restarted manually'.format(self.get_name()))
 
-        self.manager.restart_host(self.get_path_to_config_file())
+        self.manager.restart_host(self.config_file)
         self.status = self.request_status()
 
     def connect(self):
         if self.manager:
             if not self.connection:
-                data = self.manager.open_connection_to_host(self.get_path_to_config_file())
+                data = self.manager.open_connection_to_host(self.config_file)
                 self.connection = data['connection']
 
             # Ensure that the connection is closed once the python
@@ -86,9 +55,9 @@ class JSHost(BaseServer):
         if not self.connection or not self.manager.is_running():
             return
 
-        data = self.manager.close_connection_to_host(self.get_path_to_config_file(), self.connection)
+        data = self.manager.close_connection_to_host(self.config_file, self.connection)
 
-        if data['started'] and settings.VERBOSITY >= DISCONNECT:
+        if data['started'] and settings.VERBOSITY >= verbosity.DISCONNECT:
             message = 'Closed connection to {} - {}'.format(self.get_name(), self.connection)
             if data['stopTimeout']:
                 message += '. Host will stop in {} seconds unless another connection is opened'.format(

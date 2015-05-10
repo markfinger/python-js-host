@@ -1,11 +1,10 @@
 import hashlib
 import json
 import sys
-from optional_django import six
 from optional_django.serializers import JSONEncoder
 from requests.exceptions import ConnectionError as RequestsConnectionError, ReadTimeout
 from .conf import settings
-from .verbosity import FUNCTION_CALL
+from .utils import six, verbosity
 from .exceptions import ConfigError, FunctionError, UnexpectedResponse, ConnectionError, FunctionTimeout
 
 
@@ -44,7 +43,7 @@ class Function(object):
             raise ConfigError(
                 '{} does not have any functions configured in {}'.format(
                     host.get_name(),
-                    host.get_path_to_config_file(),
+                    host.config_file,
                 )
             )
 
@@ -52,7 +51,7 @@ class Function(object):
             raise ConfigError(
                 '{}\'s config file does not contain a function named {}'.format(
                     host.get_name(),
-                    host.get_path_to_config_file(),
+                    host.config_file,
                     self.name,
                 )
             )
@@ -61,7 +60,7 @@ class Function(object):
         params = self.generate_params(serialized_data, kwargs)
         timeout = self.get_timeout()
 
-        if settings.VERBOSITY >= FUNCTION_CALL:
+        if settings.VERBOSITY >= verbosity.FUNCTION_CALL:
             print(
                 'Calling function "{}" with params {} and data {}'.format(
                     self.name,

@@ -1,17 +1,13 @@
 import json
-import os
 import unittest
 from js_host.exceptions import ConfigError, FunctionError, FunctionTimeout
 from js_host.function import Function
-from js_host.conf import settings
-from js_host.js_host import JSHost
-from js_host.host import host
-
-no_functions_host_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'no_functions.host.config.js')
+from js_host.bin import spawn_managed_host
+from js_host.host import host, manager
+from .settings import ConfigFiles
 
 
 class TestFunctions(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.echo = Function('echo')
@@ -41,7 +37,7 @@ class TestFunctions(unittest.TestCase):
     def test_functions_validate_the_hosts_config(self):
         function = Function('test')
 
-        function.host = JSHost(config_file=no_functions_host_config_file)
+        function.host = spawn_managed_host(config_file=ConfigFiles.NO_FUNCTIONS, manager=manager)
 
         self.assertEqual(function.host.get_config()['functions'], [])
 

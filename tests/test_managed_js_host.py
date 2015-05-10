@@ -1,28 +1,20 @@
 import json
-import os
 import unittest
-from optional_django import six
+from js_host.utils import six
 from js_host.exceptions import UnexpectedResponse, ProcessError
-from js_host.manager import JSHostManager
-from js_host.js_host import JSHost
-from .base_js_host_tests import BaseJSHostTests
-
-managed_host_lifecycle_config_file = os.path.join(os.path.dirname(__file__), 'config_files', 'test_managed_js_host_lifecycle.host.config.js')
+from js_host.bin import spawn_detached_manager, spawn_managed_host
+from .settings import ConfigFiles
 
 
-class TestManagedJSHost(unittest.TestCase, BaseJSHostTests):
-    __test__ = True
+class TestManagedJSHost(unittest.TestCase):
     manager = None
+    host = None
 
     @classmethod
     def setUpClass(cls):
-        cls.manager = JSHostManager(config_file=cls.base_js_host_config_file)
-        cls.manager.start()
-        cls.manager.connect()
-        
-        cls.host = JSHost(manager=cls.manager)
-        cls.host.start()
-        cls.host.connect()
+        cls.manager = spawn_detached_manager(ConfigFiles.BASE_JS)
+
+        cls.host = spawn_managed_host(ConfigFiles.BASE_JS, cls.manager)
 
     @classmethod
     def tearDownClass(cls):
@@ -54,27 +46,18 @@ class TestManagedJSHost(unittest.TestCase, BaseJSHostTests):
         )
 
     def test_managed_host_lifecycle(self):
-        manager = JSHostManager(config_file=managed_host_lifecycle_config_file)
+        manager = spawn_detached_manager(ConfigFiles.MANAGED_HOST_LIFECYCLE)
 
         self.assertEqual(manager.get_config()['port'], 23456)
-
-        manager.start()
-        manager.connect()
-
         self.assertTrue(manager.is_running())
 
-        host1 = JSHost(manager=manager)
+        host1 = spawn_managed_host(manager.config_file, manager, connect_on_start=False)
 
-        # Should not be able to connect, even though a manager is running
-        # on the expected port
-        self.assertEqual(host1.get_config()['port'], 23456)
-        self.assertRaises(UnexpectedResponse, host1.connect)
-        self.assertFalse(host1.is_running())
-
-        host1.start()
+        self.assertNotEqual(host1.get_config()['port'], manager.get_config()['port'])
         self.assertTrue(host1.is_running())
 
         host1.connect()
+
         self.assertTrue(host1.is_running())
 
         res = host1.send_json_request('function/test')
@@ -83,11 +66,11 @@ class TestManagedJSHost(unittest.TestCase, BaseJSHostTests):
         host1.disconnect()
         self.assertTrue(host1.is_running())
 
-        host2 = JSHost(manager=manager)
-
-        host2.connect()
+        host2 = spawn_managed_host(manager.config_file, manager)
 
         self.assertIsInstance(host2.logfile, six.string_types)
+        self.assertEqual(host2.get_name(), host1.get_name())
+        self.assertEqual(host2.get_config()['port'], host1.get_config()['port'])
         self.assertEqual(host2.logfile, host1.logfile)
 
         res = host2.send_json_request('function/test')
@@ -119,7 +102,7 @@ class TestManagedJSHost(unittest.TestCase, BaseJSHostTests):
         self.assertEqual(port, self.host.get_config()['port'])
 
         # Ensure the same logfile is used
-        host_status = self.manager.request_host_status(self.host.get_path_to_config_file())
+        host_status = self.manager.request_host_status(self.host.config_file)
         self.assertEqual(host_status['host']['logfile'], logfile)
         self.assertEqual(logfile, self.host.logfile)
 
@@ -136,13 +119,9 @@ class TestManagedJSHost(unittest.TestCase, BaseJSHostTests):
             self.assertIn('Hello from error function', error_content)
 
     def test_if_a_managed_host_crashes_the_exception_points_to_the_logfile(self):
-        manager = JSHostManager(config_file=managed_host_lifecycle_config_file)
-        manager.start()
-        manager.connect()
+        manager = spawn_detached_manager(ConfigFiles.MANAGED_HOST_LIFECYCLE)
 
-        host = JSHost(manager=manager)
-        host.start()
-        host.connect()
+        host = spawn_managed_host(ConfigFiles.MANAGED_HOST_LIFECYCLE, manager)
 
         self.assertEqual(host.send_json_request('function/test').text, 'test')
 

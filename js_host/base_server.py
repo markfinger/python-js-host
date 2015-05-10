@@ -1,116 +1,44 @@
 import json
-import os
-import subprocess
 import requests
 import warnings
-from optional_django import six
-from distutils.spawn import find_executable
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from .conf import settings
-from .verbosity import VERBOSE, CONNECT
+from .utils import six, verbosity
 from .exceptions import ConfigError, ConnectionError, UnexpectedResponse
 
 
 class BaseServer(object):
     supported_version = ('0', '11')
-
-    # Config
-    path_to_node = None
-    source_root = None
+    status = None
     config_file = None
-    root_url = settings.ROOT_URL
+    root_url = None
 
     # Defined by subclasses
     expected_type_name = None
-    read_config_file_params = ()
 
-    # Generated at runtime
-    status = None
-
-    config = None
-    version = None
     has_connected = False
 
-    has_validated_status = False
+    def __init__(self, status, config_file=None, root_url=None):
+        self.status = status
 
-    def __init__(self, config_file=None, source_root=None, path_to_node=None):
-        if not self.config_file:
-            self.config_file = config_file or settings.CONFIG_FILE
-        if not self.source_root:
-            self.source_root = source_root or settings.SOURCE_ROOT
-        if not self.path_to_node:
-            self.path_to_node = path_to_node or settings.PATH_TO_NODE
+        if config_file is not None:
+            self.config_file = config_file
 
-        for setting in ('config_file', 'source_root', 'path_to_node'):
-            if not getattr(self, setting):
-                raise ConfigError(
-                    (
-                        'A default value for {name}.{setting} has not been defined. Please define defaults '
-                        'in js_host.conf.settings'
-                    ).format(
-                        name=type(self).__name__,
-                        setting=setting,
-                    )
-                )
-
-        if not find_executable(self.path_to_node):
-            raise ConfigError(
-                (
-                    'Executable "{}" does not exist. Please define the PATH_TO_NODE setting in '
-                    'js_host.conf.settings'
-                ).format(self.path_to_node)
-            )
-
-        if not os.path.exists(self.source_root) or not os.path.isdir(self.source_root):
-            raise ConfigError('Source root {} does not exist or is not a directory'.format(self.source_root))
-
-        if not os.path.exists(self.get_path_to_config_file()):
-            raise ConfigError('Config file {} does not exist'.format(self.get_path_to_config_file()))
+        if root_url is not None:
+            self.root_url = settings.get_root_url()
 
         self.validate_status()
 
-    def get_path_to_config_file(self):
-        if os.path.isabs(self.config_file):
-            return self.config_file
-        return os.path.join(self.source_root, self.config_file)
-
     def get_name(self):
-        address = self.root_url
+        url = self.root_url
 
-        if not address:
+        if not url:
             config = self.get_config()
-            address = '{}:{}'.format(config['address'], config['port'])
+            url = '{}:{}'.format(config['address'], config['port'])
 
-        return '{} [{}]'.format(type(self).__name__, address)
-
-    def get_path_to_bin(self):
-        if os.path.isabs(settings.BIN_PATH):
-            return settings.BIN_PATH
-        return os.path.join(self.source_root, settings.BIN_PATH)
-
-    def read_config_file(self, config_file):
-        if settings.VERBOSITY >= VERBOSE:
-            print('Reading config file {}'.format(config_file))
-
-        process = subprocess.Popen(
-            (self.path_to_node, self.get_path_to_bin(), config_file, '--config',) + self.read_config_file_params,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        process.wait()
-
-        stderr = process.stderr.read()
-        if stderr:
-            raise ConfigError(stderr)
-
-        stdout = process.stdout.read()
-        stdout = stdout.decode('utf-8')
-
-        return json.loads(stdout)
+        return '{} [{}]'.format(type(self).__name__, url)
 
     def get_status(self):
-        if not self.status:
-            self.status = self.read_config_file(self.get_path_to_config_file())
         return self.status
 
     def get_version(self):
@@ -201,15 +129,6 @@ class BaseServer(object):
 
         return False
 
-    def start(self):
-        raise NotImplementedError()
-
-    def stop(self):
-        raise NotImplementedError()
-
-    def restart(self):
-        raise NotImplementedError()
-
     def validate_status(self):
         version = self.get_version().split('.')
         for i, number in enumerate(self.supported_version):
@@ -238,18 +157,21 @@ class BaseServer(object):
         if not self.is_running():
             raise ConnectionError('Cannot connect to {}'.format(self.get_name()))
 
-        expected = self.get_status()
-        actual = self.request_status()
+        local = self.get_status()
+        remote = self.request_status()
 
-        if actual != expected:
+        if remote != local:
             raise UnexpectedResponse(
-                'Cannot complete connection. Expected {expected}, received {actual}.'.format(
-                    expected=expected,
-                    actual=actual,
+                (
+                    'Cannot complete connection due to differences in local status and remote status. '
+                    'Local: {local}. Remote: {remote}.'
+                ).format(
+                    local=local,
+                    remote=remote,
                 )
             )
 
-        if settings.VERBOSITY >= CONNECT:
+        if settings.VERBOSITY >= verbosity.CONNECT:
             print('Connected to {}'.format(self.get_name()))
 
         self.has_connected = True

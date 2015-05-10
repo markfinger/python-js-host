@@ -1,26 +1,63 @@
-# Exposes convenience singletons which are configured, connected, and started
+# Exposes convenience singletons which are configured, started, and connected
 
+import copy
+import requests
+from requests.exceptions import ConnectionError as RequestsConnectionError
+from .bin import read_status_from_config_file, spawn_detached_manager, spawn_managed_host
 from .conf import settings
 from .js_host import JSHost
 from .manager import JSHostManager
+from .exceptions import ConnectionError
 
-if settings.USE_MANAGER:
-    manager = JSHostManager()
+config_file = settings.get_config_file()
+status = read_status_from_config_file(config_file)
+
+root_url = settings.ROOT_URL
+if not root_url:
+    root_url = 'http://{}:{}'.format(
+        status['config']['address'],
+        status['config']['port'],
+    )
+
+try:
+    res = requests.get('{}/status'.format(root_url))
+except RequestsConnectionError:
+    res = None
+
+if res and res.json() == status:
+    manager = None
+
+    host = JSHost(
+        status=status,
+        config_file=config_file,
+    )
+
+    host.connect()
+elif settings.USE_MANAGER:
+    # Avoid re-reading the config file again by cloning and manually
+    # editing the status object
+    manager_status = copy.deepcopy(status)
+    manager_status['type'] = JSHostManager.expected_type_name
+    if 'functions' in manager_status:
+        manager_status['functions'] = {}
+
+    manager = JSHostManager(
+        status=manager_status,
+        config_file=config_file,
+    )
 
     # Managers run as persistent processes, so it may already be running
-    if not manager.is_running():
-        manager.start()
+    if manager.is_running():
+        manager.connect()
+    else:
+        manager = spawn_detached_manager(
+            config_file=config_file,
+            status=manager_status,
+        )
 
-    manager.connect()
-
-    host = JSHost(manager=manager)
-
-    # Managed hosts run as persistent processes, so it may already be running
-    if not host.is_running():
-        host.start()
-
-    host.connect()
+    host = spawn_managed_host(
+        config_file=config_file,
+        manager=manager
+    )
 else:
-    manager = None
-    host = JSHost()
-    host.connect()
+    raise ConnectionError('Cannot connect to JSHost at {}'.format(root_url))
