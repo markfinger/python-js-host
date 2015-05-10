@@ -517,7 +517,7 @@ Be aware that managers introduce some behaviour that you should be aware of:
 Be aware that managers currently have some identified issues:
 
 - Managers and managed hosts are only compatible with OSX and *nix systems. This issue is tracked 
-  in [js-host#7](markfinger/js-host#7)
+  in [js-host#7](https://github.com/markfinger/js-host/issues/7)
 
 
 Running the tests
