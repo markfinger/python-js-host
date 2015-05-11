@@ -11,8 +11,7 @@ of JavaScript, this library enables you to configure a persistent JS processes w
 from your python process.
 
 To reduce the cost of integrating yet another technology, a [manager](#jshostmanager) process is provided 
-which can automatically spawn js-host instances in the background. The manager helps to optimize your 
-development workflow by leaving you free to focus on coding, rather than systems administration.
+which can automatically spawn js-host instances in the background.
 
 
 Documentation
@@ -510,14 +509,6 @@ Be aware that managers introduce some behaviour that you should be aware of:
   
   If a crash is detected, exceptions will be raised indicating that you should consult the host's
   logfile to inspect the stack traces produced during the unhandled exception.
-
-
-#### Issues
-
-Be aware that managers currently have some identified issues:
-
-- Managers and managed hosts are only compatible with OSX and *nix systems. This issue is tracked 
-  in [js-host#7](https://github.com/markfinger/js-host/issues/7)
 
 
 Running the tests
