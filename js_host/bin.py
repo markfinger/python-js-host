@@ -67,10 +67,10 @@ def spawn_detached_manager(config_file, status=None):
     if not manager.is_running():
         raise ProcessError('Started {}, but cannot connect'.format(manager.get_name()))
 
-    manager.connect()
-
     if settings.VERBOSITY >= verbosity.PROCESS_START:
         print('Started {}'.format(manager.get_name()))
+
+    manager.connect()
 
     return manager
 
