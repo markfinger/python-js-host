@@ -515,14 +515,12 @@ Be aware that managers introduce some behaviour that you should be aware of:
 
 If you want to inspect the log output of a managed host, a path to the host's logfile is accessible via 
 
-```
+```python
 from js_host.host import host
 print(host.logfile)
 ```
 
-The following one liner will start (or connect to) a managed host and then `tail -f` its logfile. If you 
-are using settings other than the defaults, you may need to add extra kwargs to the `setting.configure` 
-call.
+The following one liner will start (or connect to) a managed host and then `tail -f` its logfile.
 
 ```bash
 $ python -c "from js_host.conf import settings; settings.configure(USE_MANAGER=True); from js_host.host import host; import subprocess; subprocess.call(['tail', '-f', host.logfile])"
