@@ -11,8 +11,7 @@ of JavaScript, this library enables you to configure a persistent JS processes w
 from your python process.
 
 To reduce the cost of integrating yet another technology, a [manager](#jshostmanager) process is provided 
-which can automatically spawn js-host instances in the background. The manager helps to optimize your 
-development workflow by leaving you free to focus on coding, rather than systems administration.
+which can automatically spawn js-host instances in the background.
 
 
 Documentation
@@ -32,7 +31,7 @@ Documentation
   - [JSHostManager](#jshostmanager)
     - [Under the hood](#under-the-hood)
     - [Quirks](#quirks)
-    - [Issues](#issues)
+    - [Reading logs](#reading-logs)
 - [Running the tests](#running-the-tests)
 
 
@@ -512,12 +511,20 @@ Be aware that managers introduce some behaviour that you should be aware of:
   logfile to inspect the stack traces produced during the unhandled exception.
 
 
-#### Issues
+#### Reading logs
 
-Be aware that managers currently have some identified issues:
+If you want to inspect the log output of a managed host, a path to the host's logfile is accessible via 
 
-- Managers and managed hosts are only compatible with OSX and *nix systems. This issue is tracked 
-  in [js-host#7](https://github.com/markfinger/js-host/issues/7)
+```python
+from js_host.host import host
+print(host.logfile)
+```
+
+The following one liner will start (or connect to) a managed host and then `tail -f` its logfile.
+
+```bash
+$ python -c "from js_host.conf import settings; settings.configure(USE_MANAGER=True); from js_host.host import host; import subprocess; subprocess.call(['tail', '-f', host.logfile])"
+```
 
 
 Running the tests
