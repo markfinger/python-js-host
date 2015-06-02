@@ -1,6 +1,6 @@
 {
   "private": true,
   "dependencies": {
-    "js-host": "^0.11.4"
+    "js-host": "^0.12.0"
   }
 }

@@ -8,7 +8,7 @@ from .exceptions import ConfigError, ConnectionError, UnexpectedResponse
 
 
 class BaseServer(object):
-    supported_version = ('0', '11')
+    supported_version = ('0', '12')
     status = None
     config_file = None
     root_url = None
