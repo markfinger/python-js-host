@@ -59,7 +59,7 @@ npm init
 Install the `js-host` JavaScript library with
 
 ```bash
-npm install --save js-host@0.11
+npm install --save js-host@0.12
 ```
 
 Create a file named `host.config.js` and insert
