@@ -30,6 +30,7 @@ if res and res.json() == status:
     host = JSHost(
         status=status,
         config_file=config_file,
+        root_url = root_url
     )
 
     host.connect()
