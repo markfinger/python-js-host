@@ -11,6 +11,7 @@ setup(
     ],
     description='Python bindings to a performant JavaScript environment',
     long_description='Documentation at https://github.com/markfinger/python-js-host',
+    license='MIT',
     author='Mark Finger',
     author_email='markfinger@gmail.com',
     url='https://github.com/markfinger/python-js-host',
